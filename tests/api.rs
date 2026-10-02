@@ -302,3 +302,31 @@ fn parallel_frames_match_serial() {
     assert_eq!(serial.len(), parallel.len());
     assert!(serial.iter().zip(&parallel).all(|(a, b)| a == b));
 }
+
+/// The bytes path for animations is render_gif and render_frames with the
+/// decode and encode folded in: the same GIF, the same frames.
+#[test]
+fn animation_bytes_match_render() {
+    let t = tex();
+    let png = encode_png(&t).unwrap();
+    let decoded = decode_image(&png).unwrap();
+    let bytes = BytesOptions {
+        texture: &png,
+        size: 48,
+        ..BytesOptions::default()
+    };
+    let opts = AnimationBytesOptions::new(bytes, &Motion::Wave).fps(6);
+    let direct = AnimationOptions::new(RenderOptions::new(&decoded).size(48), &Motion::Wave).fps(6);
+    assert_eq!(
+        render_gif_bytes(&opts).unwrap(),
+        direct.render_gif().unwrap()
+    );
+    let pngs = opts.render_frames_png().unwrap();
+    let frames = direct.render_frames().unwrap();
+    assert_eq!(pngs.len(), frames.len());
+    for (p, f) in pngs.iter().zip(&frames) {
+        assert_eq!(&decode_image(p).unwrap(), f);
+    }
+    let empty = AnimationBytesOptions::new(BytesOptions::default(), &Motion::Walk);
+    assert!(matches!(empty.render_gif(), Err(Error::NoTexture)));
+}
