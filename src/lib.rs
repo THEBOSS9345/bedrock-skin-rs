@@ -61,6 +61,7 @@ mod polymesh;
 mod raster;
 mod render;
 mod render2d;
+mod wire;
 
 use std::fmt;
 use std::io::Cursor;
@@ -69,6 +70,7 @@ use image::{ImageFormat, ImageReader, RgbaImage};
 
 pub use animation::{
     AnimationOptions, Animator, BonePose, Motion, Pose, parse_motion, render_frames, render_gif,
+    write_gif,
 };
 pub use animfile::{Animation, example_animations, parse_animations};
 pub use detect::{PartReport, PartVisibility, Skin, SkinOptions, SkinReport, Verdict};
@@ -89,6 +91,7 @@ pub use render::{
     parse_parts, parse_view, render,
 };
 pub use render2d::render_2d;
+pub use wire::{DecodedSkin, WireAnimation, WireSkin};
 
 /// Everything that can go wrong. Every variant but `Encode` describes bad
 /// input rather than an internal failure, so a service can answer all of

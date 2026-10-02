@@ -5,6 +5,7 @@ use std::collections::HashMap;
 use std::fmt;
 use std::str::FromStr;
 
+use image::ImageEncoder;
 use image::RgbaImage;
 
 use crate::animation::Pose;
@@ -318,6 +319,21 @@ impl<'a> RenderOptions<'a> {
     /// Renders and encodes the result as PNG.
     pub fn render_png(&self) -> Result<Vec<u8>, Error> {
         crate::encode_png(&render(self)?)
+    }
+
+    /// Renders and writes the PNG to `w` - an HTTP response, a file -
+    /// without holding the encoded bytes first. It writes the same bytes
+    /// [`RenderOptions::render_png`] returns.
+    pub fn write_png<W: std::io::Write>(&self, w: W) -> Result<(), Error> {
+        let img = render(self)?;
+        image::codecs::png::PngEncoder::new(w)
+            .write_image(
+                img.as_raw(),
+                img.width(),
+                img.height(),
+                image::ExtendedColorType::Rgba8,
+            )
+            .map_err(|e| Error::Encode(e.to_string()))
     }
 
     pub(crate) fn scene(&self, pose: &Pose) -> Result<Scene<'a>, Error> {

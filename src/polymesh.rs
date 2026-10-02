@@ -63,6 +63,21 @@ impl PolyMesh {
     /// renderer and the detector skip it too. Normals are not drawn, so a
     /// missing one leaves the corner's normal zero rather than dropping the
     /// polygon.
+    ///
+    /// ```
+    /// let geos = bedrock_skin::parse_geometry(br#"{"minecraft:geometry":[{"description":{"identifier":"geometry.persona_x"},
+    ///     "bones":[{"name":"body","poly_mesh":{"normalized_uvs":true,
+    ///         "positions":[[-4,12,-2],[4,12,-2],[4,24,-2],[-4,24,-2]],
+    ///         "normals":[[0,0,-1]],
+    ///         "uvs":[[0.25,0.5],[0.375,0.5],[0.375,0.6875],[0.25,0.6875]],
+    ///         "polys":[[[0,0,0],[1,0,1],[2,0,2],[3,0,3]]]}}]}]}"#)?;
+    /// let mesh = geos[0].bones[0].mesh().unwrap();
+    /// let polys = mesh.polygons();
+    /// assert_eq!(polys[0].len(), 4);
+    /// assert_eq!(polys[0][0].position, [-4.0, 12.0, -2.0]);
+    /// assert_eq!(polys[0][0].normal, [0.0, 0.0, -1.0]);
+    /// # Ok::<(), bedrock_skin::Error>(())
+    /// ```
     pub fn polygons(&self) -> Vec<Vec<PolyVertex>> {
         let Some(polys) = &self.polys else {
             return Vec::new();

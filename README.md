@@ -89,6 +89,25 @@ let frames = AnimationOptions::new(RenderOptions::new(&texture), &anims["animati
 
 33 example animations come bundled - dances, emotes, a backflip, fighting moves - as `example_animations()` and as files in [examples/animations](examples/animations). Not every Minecraft animation plays on every model: an animation moves bones by name, so one made for a mob with wings does nothing on a player. `missing_bones` tells you.
 
+## Skins straight from a packet
+
+A proxy or bot holds a skin the way the client sent it: raw RGBA, `null` geometry for a built-in model, a resource patch naming the model, and - for a persona skin - animation images carrying its face. `WireSkin` takes those fields as they are and decodes them, the right model picked and the face attached:
+
+```rust
+let skin = bedrock_skin::WireSkin {
+    skin_data: &packet.skin_data,
+    skin_width: packet.skin_width,
+    skin_height: packet.skin_height,
+    geometry: &packet.geometry,
+    resource_patch: &packet.resource_patch,
+    ..Default::default()
+}
+.decode()?;
+skin.options().view(View::Avatar).write_png(&mut response)?;
+```
+
+`WireSkin::skin()` gives the invisibility detector the same fields. `write_png` and `write_gif` write to any `std::io::Write` without holding the encoded bytes first.
+
 ## Reading geometry files
 
 `parse_geometry_tree` keeps a whole geometry file and picks any value out of it by path:

@@ -1,7 +1,13 @@
 # Changelog
 
-## Unreleased
+## 0.2.1
 
+- `WireSkin` and `DecodedSkin`: a skin as a Bedrock packet carries it -
+  raw RGBA, geometry, resource patch, animation list - decoded, the patch's
+  model picked and persona faces attached; `.options()` renders it.
+- `RenderOptions::write_png` and `write_gif`: render straight into any
+  `std::io::Write`.
+- Doc examples for `write_gif`, `example_animations` and `polygons`.
 - `PolyMesh::polygons()` and `PolyVertex`: a poly mesh's polygons with each
   corner's position, normal and UV looked up; `GeometryValue::poly_mesh()`
   reads one from a geometry tree.
