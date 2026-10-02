@@ -472,23 +472,6 @@ fn clip_triangle(t: &[Vertex; 3]) -> Vec<[Vertex; 3]> {
     out
 }
 
-/// An RGBA colour with channels 0..1, straight alpha.
-#[derive(Clone, Copy, Debug, PartialEq)]
-struct Color {
-    r: f64,
-    g: f64,
-    b: f64,
-    a: f64,
-}
-
-impl Color {
-    fn nrgba(self) -> [u8; 4] {
-        // fauxgl's Clamp keeps a NaN, as clamp does; `as` then makes it 0.
-        let c = |v: f64| (v.clamp(0.0, 1.0) * 255.0) as u8;
-        [c(self.r), c(self.g), c(self.b), c(self.a)]
-    }
-}
-
 /// A texture sampled nearest-neighbour, as the Go version's fastImageTexture.
 pub(crate) struct Texture<'a> {
     width: usize,
@@ -506,12 +489,21 @@ impl<'a> Texture<'a> {
     }
 
     /// fauxgl's Sample, including its v = 1 - v (mesh.rs pre-flips V to
-    /// cancel it). None stands for a coordinate off the texture, where Go
-    /// would panic; it draws nothing.
-    fn sample(&self, u: f64, v: f64) -> Option<Color> {
-        let v = 1.0 - v;
-        let u = u - u.floor();
-        let v = v - v.floor();
+    /// cancel it), as the texel's bytes: every byte survives byte/255*255
+    /// exactly, so the colour needs no floats. For u and v already in [0, 1)
+    /// the floors are skipped - u - floor(u) is u there, bar -0 becoming +0,
+    /// the same texel. None stands for a coordinate off the texture, where
+    /// Go would panic; it draws nothing.
+    /// See docs/design-decisions.md#why-the-rasterizer-is-specialised.
+    fn sample(&self, u: f64, v: f64) -> Option<[u8; 4]> {
+        let mut v = 1.0 - v;
+        let mut u = u;
+        if !(0.0..1.0).contains(&u) {
+            u -= u.floor();
+        }
+        if !(0.0..1.0).contains(&v) {
+            v -= v.floor();
+        }
         let x = go_int(u * self.width as f64);
         let y = go_int(v * self.height as f64);
         let i = (y.wrapping_mul(self.width as i64))
@@ -520,19 +512,20 @@ impl<'a> Texture<'a> {
         if i < 0 || i as usize + 3 >= self.pix.len() {
             return None;
         }
-        let p = &self.pix[i as usize..i as usize + 4];
-        Some(Color {
-            r: p[0] as f64 / 255.0,
-            g: p[1] as f64 / 255.0,
-            b: p[2] as f64 / 255.0,
-            a: p[3] as f64 / 255.0,
-        })
+        let i = i as usize;
+        Some([
+            self.pix[i],
+            self.pix[i + 1],
+            self.pix[i + 2],
+            self.pix[i + 3],
+        ])
     }
 }
 
-/// The alpha test: fragments below half opacity are dropped, colour and
-/// depth both. See docs/rendering-pipeline.md#alpha-testing.
-const ALPHA_THRESHOLD: f64 = 0.5;
+/// The alpha test: fragments below half opacity (alpha/255 < 0.5, a byte
+/// below 128) are dropped, colour and depth both.
+/// See docs/rendering-pipeline.md#alpha-testing.
+const ALPHA_THRESHOLD: u8 = 128;
 
 /// A colour and depth buffer to draw triangles into.
 pub(crate) struct Context {
@@ -694,7 +687,7 @@ impl Context {
                 b.w = 1.0 / (b.x + b.y + b.z);
                 let tc = interpolate3(v0.texture, v1.texture, v2.texture, b);
                 let color = match tex.sample(tc.x, tc.y) {
-                    Some(c) if c.a >= ALPHA_THRESHOLD => c,
+                    Some(c) if c[3] >= ALPHA_THRESHOLD => c,
                     _ => {
                         x += 1;
                         continue;
@@ -715,11 +708,11 @@ impl Context {
 
     /// Writes a fragment as fauxgl does: blended over what is there when it
     /// is not fully opaque, else stored, and only inside the image.
-    fn put(&mut self, x: i64, y: i64, color: Color) {
+    fn put(&mut self, x: i64, y: i64, color: [u8; 4]) {
         let stride = self.width as i64 * 4;
-        if color.a < 1.0 {
+        if color[3] < 255 {
             // color.NRGBA().RGBA(): premultiplied, 16 bits a channel.
-            let [r8, g8, b8, a8] = color.nrgba();
+            let [r8, g8, b8, a8] = color;
             let a8 = a8 as u32;
             let pre = |c: u8| -> u32 {
                 let c = c as u32;
@@ -738,7 +731,7 @@ impl Context {
             }
         } else if x >= 0 && y >= 0 && (x as usize) < self.width && (y as usize) < self.height {
             let j = (y as usize * self.width + x as usize) * 4;
-            self.color[j..j + 4].copy_from_slice(&color.nrgba());
+            self.color[j..j + 4].copy_from_slice(&color);
         }
     }
 }
