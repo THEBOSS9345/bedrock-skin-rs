@@ -60,11 +60,14 @@ disagreeing with the picture:
 ```
 cd tools/skincheck
 cargo run --release -- export --scout <folder with scout.db and skins/>
-cargo run --release -- go    --threads 7
-cargo run --release -- check --threads 7
+cargo run --release -- go    [--threads N] [--looks]
+cargo run --release -- check [--threads N]
 ```
 
 It writes `work/report.html`. `work/` holds real players' skins: it is
 git-ignored and must stay local, as must any database. `--threads` sets
-how many cores it uses. It is the measuring instrument, so do not tune its
+how many cores it uses (half by default); a full run of 36,000 skins takes
+about a quarter of an hour on 14. The Go side records only hashes, since
+matching hashes mean identical images; `go --looks` also measures every Go
+image, for looking into a skin whose images differ. It is the measuring instrument, so do not tune its
 checks to make a library change look better.

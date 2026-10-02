@@ -76,6 +76,7 @@ pub struct Rating {
 /// What one image looks like, for the checks. Built either from a picture this
 /// crate drew or from what the Go version measured, so one set of checks runs on
 /// both.
+#[derive(Clone)]
 struct Look {
     opaque: usize,
     full: usize,
@@ -114,12 +115,13 @@ impl Look {
         Look { opaque, full, faithful, touches_edge: edge, centre_off: centre_off(x0, y0, x1, y1, w, h, opaque), w, h }
     }
 
-    /// The same measurements, as the Go version reported them. An error or a
-    /// missing measurement becomes a fully blank image, so the checks still say
-    /// something rather than skipping Go.
-    fn of_go(g: &GoImage, w: u32, h: u32) -> Look {
+    /// The same measurements, as the Go version reported them. Without them -
+    /// go.tsv carries hashes only - `ours` stands in: when the hashes match the
+    /// images are identical, and when they do not the skin already fails as
+    /// "differs from Go"; run `go --looks` to see Go's side of it.
+    fn of_go(g: &GoImage, w: u32, h: u32, ours: Option<&Look>) -> Look {
         let Some(l) = &g.l else {
-            return Look { opaque: 0, full: 0, faithful: 0, touches_edge: false, centre_off: 0.0, w, h };
+            return ours.cloned().unwrap_or(Look { opaque: 0, full: 0, faithful: 0, touches_edge: false, centre_off: 0.0, w, h });
         };
         let (gw, gh) = (l.x1.max(l.x0) as u32 + 1, l.y1.max(l.y0) as u32 + 1);
         Look {
@@ -305,9 +307,11 @@ fn rate_skin(work: &Path, plan: &Plan, s: &PlanSkin, go: Option<&HashMap<String,
         }
     }
     let model = select_geometry(if geos.is_empty() { default_geometry() } else { &geos }, &s.identifier).cloned();
-    let persona = model.as_ref().is_some_and(|g| g.total_cubes() == 0);
+    // Geometry that draws nothing - no cubes, no poly mesh - takes the flat
+    // fallback, which cannot move.
+    let persona = model.as_ref().is_some_and(|g| !g.has_mesh());
     if persona {
-        notes.push("persona skin: drawn flat, animations hold still".into());
+        notes.push("bones with nothing to draw: drawn flat, animations hold still".into());
     }
     if let Some(g) = &model
         && !geos.is_empty()
@@ -381,7 +385,7 @@ fn rate_skin(work: &Path, plan: &Plan, s: &PlanSkin, go: Option<&HashMap<String,
             go_renders.insert(st.name.clone(), g.map(|x| vec![x.clone()]).unwrap_or_default());
             let go_err = g.filter(|x| !x.e.is_empty()).map(|x| x.e.as_str());
             let go_problems: Vec<Problem> = match g {
-                Some(x) if x.e.is_empty() => assess(&st.name, &st.view, &Look::of_go(x, st.size, st.size), invisible),
+                Some(x) if x.e.is_empty() => assess(&st.name, &st.view, &Look::of_go(x, st.size, st.size, rust_look.as_ref()), invisible),
                 _ => Vec::new(),
             };
             // A view the model has no bones for is a fact about the skin, not a
@@ -435,7 +439,8 @@ fn rate_skin(work: &Path, plan: &Plan, s: &PlanSkin, go: Option<&HashMap<String,
         if !applies {
             not_applying.push(short_name(&a.name));
         }
-        let opts = AnimationOptions::new(options("body", &a.angle, a.size), anim).fps(a.fps);
+        // One frame at a time: the skins are already spread over the cores.
+        let opts = AnimationOptions::new(options("body", &a.angle, a.size), anim).fps(a.fps).workers(1);
         let key = format!("anim:{}", a.name);
         let short = short_name(&a.name);
         match opts.render_frames() {
@@ -479,7 +484,8 @@ fn rate_skin(work: &Path, plan: &Plan, s: &PlanSkin, go: Option<&HashMap<String,
                     }
                 }
                 for (i, frame) in frames.iter().enumerate() {
-                    let gl = gframes.get(i).filter(|x| x.e.is_empty()).map(|x| Look::of_go(x, a.size, a.size));
+                    let ours = Look::of(frame, &colours);
+                    let gl = gframes.get(i).filter(|x| x.e.is_empty()).map(|x| Look::of_go(x, a.size, a.size, Some(&ours)));
                     let label = format!("{short} frame {i}");
                     // The same checks are dropped on both sides. Animation
                     // frames blend overlapping parts, so "tiny render" and
@@ -488,7 +494,7 @@ fn rate_skin(work: &Path, plan: &Plan, s: &PlanSkin, go: Option<&HashMap<String,
                     // package's bug.
                     let skip = |(k, _, _): &Problem| *k != "tiny render" && *k != "wrong colours";
                     let rust_problems: Vec<Problem> =
-                        assess(&label, "anim", &Look::of(frame, &colours), invisible)
+                        assess(&label, "anim", &ours, invisible)
                             .into_iter()
                             .filter(skip)
                             .collect();
@@ -527,7 +533,7 @@ fn rate_skin(work: &Path, plan: &Plan, s: &PlanSkin, go: Option<&HashMap<String,
     if !not_applying.is_empty() {
         notes.push(format!("{} example animations move no bone this model has", not_applying.len()));
     }
-    if let Err(e) = AnimationOptions::new(options("body", "iso", 64), &Motion::Walk).render_gif() {
+    if let Err(e) = AnimationOptions::new(options("body", "iso", 64), &Motion::Walk).workers(1).render_gif() {
         issue!("gif error", e.to_string(), 40, Side::Rust);
     }
 
@@ -608,7 +614,7 @@ fn rate_skin(work: &Path, plan: &Plan, s: &PlanSkin, go: Option<&HashMap<String,
                 Some(m) => m,
                 None => &ex[name],
             };
-            if let Ok(gif) = AnimationOptions::new(options("body", "iso", 96), anim).fps(8).render_gif() {
+            if let Ok(gif) = AnimationOptions::new(options("body", "iso", 96), anim).fps(8).workers(1).render_gif() {
                 let file = format!("{}-{}.gif", s.id, short_name(name));
                 fs::write(img_dir.join(&file), gif).unwrap();
                 gifs.push((short_name(name), file));

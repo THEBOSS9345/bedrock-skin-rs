@@ -29,6 +29,7 @@ var (
 	batch   = flag.String("batch", "", "render a skincheck plan in this folder instead (see batch.go)")
 	threads = flag.Int("threads", 0, "batch mode: how many cores to render on (0 = every core)")
 	limit   = flag.Int("limit", 0, "batch mode: only render the first N skins (0 = all)")
+	looks   = flag.Bool("looks", false, "batch mode: also record each image's measurements, in go.json")
 )
 
 func main() {

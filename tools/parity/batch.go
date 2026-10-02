@@ -5,14 +5,20 @@ package main
 // the Go pictures with the same checks it applies to its own and say which of
 // the two packages got a skin wrong:
 //
-//	go run . -batch ../skincheck/work [-threads 6]
+//	go run . -batch ../skincheck/work [-threads 6] [-looks]
 //
-// Each render records the hash of its pixels (the parity check) and the
-// measurements the checks need: how much of the frame is opaque, how much of
-// that is a colour from the skin, whether the model touches the edge, and the
-// bounds of what was drawn. No images are kept.
+// Each render records the hash of its pixels, the parity check, in go.tsv:
+// one line per render, "<skin>/<render>", a tab, then its hashes (one per
+// frame) or "!" and the error. Matching hashes mean identical images, so
+// skincheck's measurements of its own image hold for Go's too and none are
+// needed here. -looks writes go.json instead, adding the measurements the
+// checks need - how much of the frame is opaque, how much of that is a colour
+// from the skin, whether the model touches the edge, and the bounds of what
+// was drawn - for looking into a skin whose images differ. That file is about
+// a gigabyte for a full database. No images are kept.
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"image"
@@ -176,16 +182,47 @@ func runBatch(dir string) {
 	close(jobs)
 	wg.Wait()
 
-	out := make(map[string][]imgStat, len(results)*45)
+	_ = os.Remove(filepath.Join(dir, "go.json"))
+	_ = os.Remove(filepath.Join(dir, "go.tsv"))
+	if *looks {
+		out := make(map[string][]imgStat, len(results)*45)
+		for i, r := range results {
+			for k, v := range r {
+				out[p.Skins[i].ID+"/"+k] = v
+			}
+		}
+		b, err := json.Marshal(out)
+		must(err)
+		must(os.WriteFile(filepath.Join(dir, "go.json"), b, 0o644))
+		fmt.Fprintf(os.Stderr, "go: wrote %d renders with their measurements\n", len(out))
+		return
+	}
+	f, err := os.Create(filepath.Join(dir, "go.tsv"))
+	must(err)
+	w := bufio.NewWriterSize(f, 1<<20)
+	clean := strings.NewReplacer("\t", " ", "\n", " ")
+	n := 0
 	for i, r := range results {
 		for k, v := range r {
-			out[p.Skins[i].ID+"/"+k] = v
+			w.WriteString(p.Skins[i].ID + "/" + k + "\t")
+			for j, st := range v {
+				if st.Error != "" {
+					// An error ends the line: it may hold spaces.
+					w.WriteString("!" + clean.Replace(st.Error))
+					break
+				}
+				if j > 0 {
+					w.WriteByte(' ')
+				}
+				w.WriteString(st.Hash)
+			}
+			w.WriteByte('\n')
+			n++
 		}
 	}
-	b, err := json.Marshal(out)
-	must(err)
-	must(os.WriteFile(filepath.Join(dir, "go.json"), b, 0o644))
-	fmt.Fprintf(os.Stderr, "go: wrote %d renders\n", len(out))
+	must(w.Flush())
+	must(f.Close())
+	fmt.Fprintf(os.Stderr, "go: wrote %d renders\n", n)
 }
 
 // renderSkin renders one skin's plan: each still is one entry, each animation
@@ -221,7 +258,11 @@ func renderSkin(dir string, p plan, s planSkin, ex map[string]*bedrockskin.Anima
 		if err != nil {
 			return imgStat{Error: err.Error()}
 		}
-		return imgStat{Hash: hashImage(img), Look: lookOf(img, colours)}
+		st := imgStat{Hash: hashImage(img)}
+		if *looks {
+			st.Look = lookOf(img, colours)
+		}
+		return st
 	}
 	for _, st := range p.Stills {
 		if st.Cape && cape == nil {
@@ -243,7 +284,8 @@ func renderSkin(dir string, p plan, s planSkin, ex map[string]*bedrockskin.Anima
 		} else {
 			anim = ex[a.Name]
 		}
-		frames, err := bedrockskin.RenderFrames(bedrockskin.AnimationOptions{Options: opts("", a.Angle, a.Size), Animation: anim, FPS: a.FPS})
+		// One frame at a time: the skins are already spread over the cores.
+		frames, err := bedrockskin.RenderFrames(bedrockskin.AnimationOptions{Options: opts("", a.Angle, a.Size), Animation: anim, FPS: a.FPS, Workers: 1})
 		if err != nil {
 			out["anim:"+a.Name] = []imgStat{{Error: err.Error()}}
 			continue

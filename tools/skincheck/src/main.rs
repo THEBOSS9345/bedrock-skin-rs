@@ -85,16 +85,17 @@ fn main() {
         args.windows(2).filter(|w| w[0] == name).map(|w| w[1].clone()).collect()
     };
     let started = Instant::now();
+    let looks = std::env::args().any(|a| a == "--looks");
     let threads = flag("--threads").first().and_then(|s| s.parse::<usize>().ok()).filter(|n| *n > 0).unwrap_or_else(default_threads);
     let limit = flag("--limit").first().and_then(|s| s.parse().ok());
     match cmd.as_str() {
         "export" => export(&flag("--scout"), &flag("--captures")),
-        "go" => run_go(threads, limit),
+        "go" => run_go(threads, limit, looks),
         "check" => rate::check(Path::new(WORK), limit, threads),
         "report" => rewrite_report(),
         "all" => {
             export(&flag("--scout"), &flag("--captures"));
-            run_go(threads, limit);
+            run_go(threads, limit, looks);
             rate::check(Path::new(WORK), limit, threads);
         }
         _ => usage(),
@@ -116,7 +117,7 @@ fn rewrite_report() {
 }
 
 fn usage() -> ! {
-    eprintln!("usage: skincheck export --scout <dir> [--captures <dir>]... | go [--threads N] | check [--limit N] [--threads N] | report | all ...");
+    eprintln!("usage: skincheck export --scout <dir> [--captures <dir>]... | go [--threads N] [--looks] | check [--limit N] [--threads N] | report | all ...");
     eprintln!("  --threads N  cores to render on (default {}, or $SKINCHECK_THREADS)", default_threads());
     std::process::exit(2)
 }
@@ -313,8 +314,9 @@ fn export_captures(dir: &Path, out: &Path) -> Vec<PlanSkin> {
     skins
 }
 
-/// Has the Go version render the plan, writing work/go.json.
-fn run_go(threads: usize, limit: Option<usize>) {
+/// Has the Go version render the plan, writing work/go.tsv - or, with
+/// --looks, work/go.json with every image measured too.
+fn run_go(threads: usize, limit: Option<usize>, looks: bool) {
     let tool = Path::new(env!("CARGO_MANIFEST_DIR")).join("..").join("parity");
     let work = fs::canonicalize(WORK).expect("run export first");
     let status = Command::new("go")
@@ -323,6 +325,7 @@ fn run_go(threads: usize, limit: Option<usize>) {
         .args(["-threads", &threads.to_string()])
         .arg("-limit")
         .arg(limit.map_or_else(|| "0".to_string(), |n| n.to_string()))
+        .args(looks.then_some("-looks"))
         .current_dir(&tool)
         .env("GOWORK", "off")
         .status();
@@ -384,13 +387,37 @@ pub struct GoLook {
     pub y1: usize,
 }
 
+/// What the Go version drew: go.tsv, its hashes - one line per render,
+/// `<skin>/<render>`, a tab, then a hash per frame or `!` and the error - or
+/// go.json when it was run with --looks and measured every image too.
 pub fn read_go(work: &Path) -> Option<HashMap<String, Vec<GoImage>>> {
+    if let Ok(text) = fs::read_to_string(work.join("go.tsv")) {
+        let mut out = HashMap::new();
+        for line in text.lines() {
+            let Some((key, rest)) = line.split_once('\t') else { continue };
+            // Hashes are hex, so a `!` can only start the error, which ends
+            // the line, spaces and all.
+            let (hashes, error) = match rest.find('!') {
+                Some(at) => (&rest[..at], Some(&rest[at + 1..])),
+                None => (rest, None),
+            };
+            let mut images: Vec<GoImage> = hashes
+                .split_whitespace()
+                .map(|h| GoImage { h: h.to_string(), e: String::new(), l: None })
+                .collect();
+            if let Some(e) = error {
+                images.push(GoImage { h: String::new(), e: e.to_string(), l: None });
+            }
+            out.insert(key.to_string(), images);
+        }
+        return Some(out);
+    }
     serde_json::from_slice(&fs::read(work.join("go.json")).ok()?).ok()
 }
 
-/// How many cores to render on. Default is a quarter of the machine, or 4,
-/// whichever is larger: a full run is 13 million images, and taking every core
-/// makes the machine unusable meanwhile. SKINCHECK_THREADS or --threads sets it.
+/// How many cores to render on. Default is half the machine, or 4, whichever
+/// is larger: a full run is 13 million images, and taking every core makes the
+/// machine unusable meanwhile. SKINCHECK_THREADS or --threads sets it.
 fn default_threads() -> usize {
     if let Ok(v) = std::env::var("SKINCHECK_THREADS")
         && let Ok(n) = v.parse::<usize>()
@@ -398,5 +425,5 @@ fn default_threads() -> usize {
     {
         return n;
     }
-    std::thread::available_parallelism().map(|n| (n.get() / 4).max(4)).unwrap_or(4)
+    std::thread::available_parallelism().map(|n| (n.get() / 2).max(4)).unwrap_or(4)
 }
