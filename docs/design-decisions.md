@@ -78,13 +78,13 @@ Removing the negation does not look broken on most skins — they are nearly sym
 
 ## Why the V coordinate is pre-flipped
 
-fauxgl's `Texture.Sample` internally computes `v = 1 - v`, following OpenGL's bottom-up convention. UV rectangles here are computed top-down, matching PNG row order and the geometry format. So the vertex builder pre-flips V to cancel fauxgl's flip.
+The texture sampler, like fauxgl's it was taken from, computes `v = 1 - v`, following OpenGL's bottom-up convention. UV rectangles here are computed top-down, matching PNG row order and the geometry format. So the vertex builder pre-flips V to cancel fauxgl's flip.
 
 The reason this deserves a comment in the code as well as a doc entry: the failure mode is **not** a cleanly upside-down image. It is a seemingly random pattern of transparent and opaque patches, because the atlas is dense enough that a mirrored read sometimes lands on plausible pixels. It looks like a UV *bounds* bug, not a flip.
 
 ## Why no Viewport in the shader matrix
 
-The shader matrix stops after `LookAt` and `Perspective`. fauxgl's `Context` applies the NDC→screen mapping itself, after the perspective divide.
+The matrix stops after `LookAt` and `Perspective`. The rasterizer applies the NDC→screen mapping itself, after the perspective divide.
 
 Chaining `.Viewport(...)` double-applies it *before* the divide, producing a fully blank render — confirmed as zero non-zero-alpha pixels — even though the mesh builds correctly at plausible coordinates. A blank image with a healthy-looking mesh is a confusing symptom; this is where to look.
 
@@ -240,7 +240,7 @@ The match is with Go on x86-64. Go's compiler fuses multiply-adds on ARM, so Go 
 
 ## Why the rasterizer is fauxgl, rewritten
 
-The Go version draws with fauxgl. `src/raster.rs` is the part of it this library uses - matrices, clipping, the edge-function rasterizer, perspective-correct interpolation, nearest-neighbour sampling and the alpha test - written with the same operations in the same order, because floating-point arithmetic is not associative and `(a + b) + c` can differ from `a + (b + c)` in the last bit. It keeps fauxgl's quirks too: a fragment between half and fully opaque is blended rather than stored, and its odd integer conversions of out-of-range floats.
+The Go version's rasterizer is fauxgl's, specialised (see [above](#why-the-rasterizer-is-specialised)); its matrices and clipping are still fauxgl's own. `src/raster.rs` is all of that - matrices, clipping, the edge-function rasterizer, perspective-correct interpolation, nearest-neighbour sampling and the alpha test - written with the same operations in the same order, because floating-point arithmetic is not associative and `(a + b) + c` can differ from `a + (b + c)` in the last bit. It keeps fauxgl's quirks too: a fragment between half and fully opaque is blended rather than stored, and its odd integer conversions of out-of-range floats.
 
 It has no threads and no locks: one render is one thread, as in Go (see [why rasterization is single-threaded](#why-rasterization-is-single-threaded)).
 
