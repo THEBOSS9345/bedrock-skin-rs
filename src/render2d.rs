@@ -1,4 +1,4 @@
-//! The flat fallback for persona skins, which have bones but no cubes.
+//! The flat fallback for geometry whose bones draw nothing.
 //! See docs/rendering-pipeline.md#the-2d-fallback.
 
 use image::RgbaImage;
@@ -65,8 +65,8 @@ fn over(dst: [u32; 4], src: [u32; 4]) -> [u32; 4] {
 
 /// Composites a flat front-view "paper doll" by cropping the standard
 /// vanilla box-UV regions straight out of the texture. It needs no geometry
-/// at all, which is why rendering falls back to it for persona skins: they
-/// carry bones but no cubes, so there is nothing to rasterize.
+/// at all, which is why rendering falls back to it for geometry that draws
+/// nothing: bones with neither cubes nor a poly mesh.
 ///
 /// Coordinates are against a 64-wide texture, scaled for other widths.
 pub fn render_2d(texture: &RgbaImage, view: View, size: u32) -> RgbaImage {

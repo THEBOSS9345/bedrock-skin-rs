@@ -3,9 +3,11 @@
 // tests/parity.rs check the port against it: the same images, poses,
 // reports and query results.
 //
-// Run it from the repository root after changing either library:
+// Run it after changing either library:
 //
-//	cd tools/parity && go run . -out ../../testdata/parity
+//	cd tools/parity && go run .
+//
+// With -batch it renders a tools/skincheck plan instead; see batch.go.
 package main
 
 import (
@@ -22,10 +24,19 @@ import (
 	bedrockskin "github.com/THEBOSS9345/bedrock-skin-go"
 )
 
-var out = flag.String("out", "../../testdata/parity", "where to write the fixtures")
+var (
+	out     = flag.String("out", "../../testdata/parity", "where to write the fixtures")
+	batch   = flag.String("batch", "", "render a skincheck plan in this folder instead (see batch.go)")
+	threads = flag.Int("threads", 0, "batch mode: how many cores to render on (0 = every core)")
+	limit   = flag.Int("limit", 0, "batch mode: only render the first N skins (0 = all)")
+)
 
 func main() {
 	flag.Parse()
+	if isBatch(*batch) {
+		runBatch(*batch)
+		return
+	}
 	must(os.MkdirAll(filepath.Join(*out, "renders"), 0o755))
 	must(os.MkdirAll(filepath.Join(*out, "frames"), 0o755))
 
@@ -87,6 +98,22 @@ func legacyTexture() *image.NRGBA {
 	return img
 }
 
+// faceTexture stands in for a persona face animation: 32x64, two frames,
+// the top frame's hat half partly transparent.
+func faceTexture() *image.NRGBA {
+	img := image.NewNRGBA(image.Rect(0, 0, 32, 64))
+	for y := 0; y < 64; y++ {
+		for x := 0; x < 32; x++ {
+			a := uint8(255)
+			if y >= 16 && y < 32 {
+				a = uint8((x * y * 5) % 256)
+			}
+			img.Set(x, y, color.NRGBA{R: uint8(x * 8), G: uint8(y * 4), B: 200, A: a})
+		}
+	}
+	return img
+}
+
 // headOnly is the test texture with only the head's front face opaque.
 func headOnly() *image.NRGBA {
 	img := testTexture()
@@ -132,6 +159,9 @@ func renders() {
 	bench, benchGeo := benchSkin()
 	test, semi, custom := testTexture(), semiTexture(), customTexture()
 	customGeo, personaGeo, legacyGeo := parse("custom-geometry.json"), parse("persona-geometry.json"), parse("legacy-geometry.json")
+	meshGeo, oddGeo, companionGeo := parse("persona-mesh-geometry.json"), parse("persona-mesh-odd.json"), parse("persona-companion-geometry.json")
+	face := []bedrockskin.AnimatedTexture{{Type: bedrockskin.AnimatedFace, Texture: faceTexture()}}
+	body128 := []bedrockskin.AnimatedTexture{{Type: bedrockskin.AnimatedBody128, Texture: semi}, {Type: bedrockskin.AnimatedFace, Texture: faceTexture()}}
 
 	scaled := bedrockskin.Pose{
 		"head":     {Scale: [3]float64{1.5, 1.5, 1.5}, Scaled: true, Rotation: [3]float64{0, 30, 0}},
@@ -161,6 +191,17 @@ func renders() {
 		"sneak-still":        {Texture: test, Pose: bedrockskin.MotionSneak.Pose(0.4), Size: 96},
 		"scaled-pose":        {Texture: test, Pose: scaled, Angle: bedrockskin.AngleIso, Size: 96},
 		"tiny":               {Texture: test, View: bedrockskin.ViewAvatar, Size: 3},
+		"mesh-body":          {Texture: test, Geometry: meshGeo, Size: 96},
+		"mesh-face-iso":      {Texture: test, Geometry: meshGeo, Animated: face, Angle: bedrockskin.AngleIso, Size: 96},
+		"mesh-face-head":     {Texture: test, Geometry: meshGeo, Animated: face, View: bedrockskin.ViewHead, Size: 80},
+		"mesh-face-avatar":   {Texture: semi, Geometry: meshGeo, Animated: face, View: bedrockskin.ViewAvatar, Size: 64},
+		"mesh-face-chest":    {Texture: test, Geometry: meshGeo, Animated: face, View: bedrockskin.ViewChest, Cape: semi, Size: 72},
+		"mesh-face-back":     {Texture: test, Geometry: meshGeo, Animated: face, Cape: semi, Camera: &bedrockskin.Camera{Yaw: 150, Pitch: 20}, Size: 96},
+		"mesh-parts-hat":     {Texture: test, Geometry: meshGeo, Animated: face, Parts: []string{"HAT", "leftArm"}, Size: 64},
+		"mesh-odd":           {Texture: test, Geometry: oddGeo, Angle: bedrockskin.AngleIso, Size: 96},
+		"mesh-odd-head":      {Texture: semi, Geometry: oddGeo, View: bedrockskin.ViewHead, Size: 64},
+		"mesh-odd-chest":     {Texture: test, Geometry: oddGeo, View: bedrockskin.ViewChest, Size: 64},
+		"mesh-companion":     {Texture: test, Geometry: companionGeo, Animated: body128, Angle: bedrockskin.AngleIso, Size: 96},
 	}
 	for name, opts := range cases {
 		b, err := opts.RenderPNG()
@@ -188,6 +229,10 @@ func frames() {
 	for name, a := range anims {
 		writeFrames(name, bedrockskin.AnimationOptions{Options: bedrockskin.Options{Texture: test, Size: 64}, Animation: a, FPS: 6})
 	}
+	writeFrames("mesh-walk", bedrockskin.AnimationOptions{
+		Options:   bedrockskin.Options{Texture: test, Geometry: parse("persona-mesh-geometry.json"), Animated: []bedrockskin.AnimatedTexture{{Type: bedrockskin.AnimatedFace, Texture: faceTexture()}}, Angle: bedrockskin.AngleIso, Size: 64},
+		Animation: bedrockskin.MotionWalk, FPS: 4,
+	})
 	writeFrames("molang", bedrockskin.AnimationOptions{
 		Options:   bedrockskin.Options{Texture: customTexture(), Geometry: customGeo, Angle: bedrockskin.AngleIso, Size: 72},
 		Animation: mol["animation.parity.molang"], FPS: 5,
@@ -270,6 +315,11 @@ func reports() map[string]reportCase {
 		"strict":      {semiTexture(), nil, bedrockskin.SkinOptions{MinVisibleFraction: 0.9, MinVisibleParts: 6}},
 		"big-min":     {customTexture(), custom, bedrockskin.SkinOptions{MinGeometrySize: 3}},
 		"bench":       {decode(readRoot("testdata/bench-skin/texture.png")), readRoot("testdata/bench-skin/geometry.json"), bedrockskin.SkinOptions{}},
+		"mesh":        {testTexture(), read("persona-mesh-geometry.json"), bedrockskin.SkinOptions{}},
+		"mesh-semi":   {semiTexture(), read("persona-mesh-geometry.json"), bedrockskin.SkinOptions{}},
+		"mesh-odd":    {semiTexture(), read("persona-mesh-odd.json"), bedrockskin.SkinOptions{}},
+		"mesh-128":    {customTexture(), read("persona-mesh-geometry.json"), bedrockskin.SkinOptions{}},
+		"companion":   {headOnly(), read("persona-companion-geometry.json"), bedrockskin.SkinOptions{}},
 	}
 	out := map[string]reportCase{}
 	for name, c := range cases {
@@ -333,6 +383,7 @@ func geometries() []geometryCase {
 		string(read("custom-geometry.json")),
 		string(read("legacy-geometry.json")),
 		string(read("persona-geometry.json")),
+		string(read("persona-mesh-odd.json")),
 		string(readRoot("testdata/bench-skin/geometry.json")),
 		`null`, `[]`, `"x"`, `{`, `{}`,
 		`{"minecraft:geometry":[{"description":{"identifier":"a","texture_width":"64"},"bones":[{"name":"b"}]}]}`,

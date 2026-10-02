@@ -1,3 +1,12 @@
 /target
 *.exe
 *.pdb
+
+# Never commit a skin database or anything skincheck exports from one: the
+# blobs are real players' skins, and they are large. work/ is already ignored
+# by tools/skincheck/.gitignore; these catch the files anywhere else.
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3

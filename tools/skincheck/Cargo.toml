@@ -1,0 +1,15 @@
+[package]
+name = "skincheck"
+version = "0.0.0"
+edition = "2024"
+publish = false
+description = "Renders thousands of real skins every way, checks them against the Go version and rates them"
+
+[dependencies]
+bedrock-skin = { path = "../.." }
+flate2 = "1"
+image = { version = "0.25", default-features = false, features = ["png"] }
+rayon = "1"
+rusqlite = { version = "0.37", features = ["bundled"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"

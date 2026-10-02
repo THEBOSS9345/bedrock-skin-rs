@@ -194,6 +194,59 @@ pub struct RenderOptions<'a> {
     /// Moves bones from where the geometry puts them, e.g. a frame of a
     /// [`Motion`](crate::Motion). Empty is the rest pose.
     pub pose: Pose,
+    /// The extra textures a persona skin's animations carry - the face, and
+    /// animated body parts. Each draws the geometry entry made for it
+    /// alongside the main one; a persona skin's head lives only in its face
+    /// entry. See docs/geometry-format.md#persona-skins.
+    pub animated: Vec<AnimatedTexture<'a>>,
+}
+
+/// The kind of a skin animation, numbered as the Bedrock protocol numbers
+/// them.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum AnimatedType {
+    /// The face: eyes that blink.
+    Face = 1,
+    /// A 32x32 animated body part.
+    Body32 = 2,
+    /// A 128x128 animated body part.
+    Body128 = 3,
+}
+
+impl AnimatedType {
+    /// The protocol's number for a type; None for one this does not know.
+    pub fn from_protocol(n: u32) -> Option<AnimatedType> {
+        match n {
+            1 => Some(AnimatedType::Face),
+            2 => Some(AnimatedType::Body32),
+            3 => Some(AnimatedType::Body128),
+            _ => None,
+        }
+    }
+
+    /// The identifier prefix of the geometry entry the type draws, e.g.
+    /// `geometry.animated_face_persona-<id>`.
+    fn entry_prefix(self) -> &'static str {
+        match self {
+            AnimatedType::Face => "geometry.animated_face",
+            AnimatedType::Body32 => "geometry.animated_32x32",
+            AnimatedType::Body128 => "geometry.animated_128x128",
+        }
+    }
+}
+
+/// One skin animation's image: its frames stacked top to bottom, as the
+/// client sends it.
+#[derive(Clone, Copy, Debug)]
+pub struct AnimatedTexture<'a> {
+    pub kind: AnimatedType,
+    pub texture: &'a RgbaImage,
+}
+
+/// The entry an animation type draws.
+pub(crate) fn animated_entry(geos: &[Geometry], kind: AnimatedType) -> Option<&Geometry> {
+    geos.iter()
+        .find(|g| g.identifier.starts_with(kind.entry_prefix()))
 }
 
 impl<'a> RenderOptions<'a> {
@@ -211,6 +264,7 @@ impl<'a> RenderOptions<'a> {
             camera: None,
             size: 0,
             pose: Pose::new(),
+            animated: Vec::new(),
         }
     }
 
@@ -250,6 +304,11 @@ impl<'a> RenderOptions<'a> {
         self.pose = pose;
         self
     }
+    /// Adds a persona animation texture (see [`RenderOptions::animated`]).
+    pub fn animated(mut self, kind: AnimatedType, texture: &'a RgbaImage) -> Self {
+        self.animated.push(AnimatedTexture { kind, texture });
+        self
+    }
 
     /// The same as [`render`].
     pub fn render(&self) -> Result<RgbaImage, Error> {
@@ -261,7 +320,7 @@ impl<'a> RenderOptions<'a> {
         crate::encode_png(&render(self)?)
     }
 
-    pub(crate) fn scene(&self, pose: &Pose) -> Result<Scene, Error> {
+    pub(crate) fn scene(&self, pose: &Pose) -> Result<Scene<'a>, Error> {
         if self.texture.width() == 0 || self.texture.height() == 0 {
             return Err(Error::NoTexture);
         }
@@ -278,10 +337,10 @@ impl<'a> RenderOptions<'a> {
         let geo = select_geometry(geos, &self.identifier).ok_or(Error::NoGeometry)?;
         let view = self.view;
 
-        // No cubes anywhere means a persona skin: real bones, no mesh. A
-        // flat texture crop is the only meaningful output, and it is what
-        // the client itself shows.
-        if geo.total_cubes() == 0 {
+        // No cubes and no poly mesh anywhere: bones with nothing to draw. A
+        // flat crop is the only output left.
+        // See docs/design-decisions.md#why-persona-skins-fall-back-to-2d.
+        if !geo.has_mesh() {
             return Ok(Scene {
                 flat: Some(render_2d(self.texture, view, size as u32)),
                 ..Scene::default()
@@ -289,25 +348,47 @@ impl<'a> RenderOptions<'a> {
         }
 
         let (mut fov, mut margin) = (35.0, 1.5);
-        let triangles = if !self.parts.is_empty() {
-            let by_name = bone_map(geo);
-            let include = |name: &str| self.parts.iter().any(|p| is_descendant(&by_name, name, p));
-            let t = build_triangles(geo, Some(&include), pose);
-            if t.is_empty() {
-                return Err(Error::NoMatchingParts);
+        let build = |g: &Geometry| {
+            if !self.parts.is_empty() {
+                let by_name = bone_map(g);
+                let include =
+                    |name: &str| self.parts.iter().any(|p| is_descendant(&by_name, name, p));
+                build_triangles(g, Some(&include), pose)
+            } else {
+                match include_for_view(g, view) {
+                    Some(include) => build_triangles(g, Some(&*include), pose),
+                    None => build_triangles(g, None, pose),
+                }
             }
-            t
-        } else {
-            let t = match include_for_view(geo, view) {
-                Some(include) => build_triangles(geo, Some(&*include), pose),
-                None => build_triangles(geo, None, pose),
-            };
-            if t.is_empty() {
-                return Err(Error::EmptyView);
-            }
-            (fov, margin) = framing_for(view);
-            t
         };
+        let triangles = build(geo);
+        let mut drawn = triangles.len();
+        let mut layers = vec![Layer {
+            triangles,
+            texture: self.texture,
+        }];
+        for a in &self.animated {
+            if let Some(g) = animated_entry(geos, a.kind)
+                && g.identifier != geo.identifier
+            {
+                let triangles = build(g);
+                drawn += triangles.len();
+                layers.push(Layer {
+                    triangles,
+                    texture: a.texture,
+                });
+            }
+        }
+        if drawn == 0 {
+            return Err(if self.parts.is_empty() {
+                Error::EmptyView
+            } else {
+                Error::NoMatchingParts
+            });
+        }
+        if self.parts.is_empty() {
+            (fov, margin) = framing_for(view);
+        }
 
         let (yaw, pitch);
         if let Some(cam) = self.camera {
@@ -336,17 +417,21 @@ impl<'a> RenderOptions<'a> {
 
         // The cape is built before the camera: it hangs behind and below the
         // body, so framing on the body alone can push it out of shot.
-        let mut cape = Vec::new();
-        if self.cape.is_some()
+        if let Some(cape_texture) = self.cape
             && cape_visible_in(view, &self.parts)
             && let Some(cape_geo) = cape_geometry_for(geos, geo)
         {
             let include = |name: &str| name == "cape";
-            cape = build_triangles(cape_geo, Some(&include), pose);
+            let triangles = build_triangles(cape_geo, Some(&include), pose);
+            if !triangles.is_empty() {
+                layers.push(Layer {
+                    triangles,
+                    texture: cape_texture,
+                });
+            }
         }
         Ok(Scene {
-            triangles,
-            cape,
+            layers,
             fov,
             margin,
             yaw,
@@ -358,11 +443,10 @@ impl<'a> RenderOptions<'a> {
 }
 
 /// Everything a render works out before placing the camera. `flat` is set
-/// instead for a persona skin, which has nothing to rasterize.
+/// instead for geometry with nothing to rasterize.
 #[derive(Default)]
-pub(crate) struct Scene {
-    pub triangles: Vec<Triangle>,
-    pub cape: Vec<Triangle>,
+pub(crate) struct Scene<'a> {
+    pub layers: Vec<Layer<'a>>,
     pub fov: f64,
     pub margin: f64,
     pub yaw: f64,
@@ -374,39 +458,53 @@ pub(crate) struct Scene {
 /// Renders a skin into a square image.
 ///
 /// With only a texture set, this is the full body of a standard humanoid,
-/// straight on, at 512x512. Persona skins are handled rather than rejected:
-/// their geometry has bones but no cubes, so there is nothing to rasterize,
-/// and this falls back to a flat crop of the texture (see
-/// [`render_2d`](crate::render_2d)).
+/// straight on, at 512x512. Persona skins render in 3D from their poly
+/// meshes; add their animation images with [`RenderOptions::animated`] to
+/// get the head. Geometry whose bones draw nothing falls back to a flat crop
+/// (see [`render_2d`](crate::render_2d)).
 pub fn render(opts: &RenderOptions) -> Result<RgbaImage, Error> {
     let sc = opts.scene(&opts.pose)?;
     if let Some(flat) = sc.flat {
         return Ok(flat);
     }
-    let mut all = sc.triangles.clone();
-    all.extend_from_slice(&sc.cape);
+    let all = sc.framing();
     let (eye, center) = camera_for_yaw_pitch(&all, sc.fov, sc.margin, sc.yaw, sc.pitch);
-    Ok(rasterize(
-        &sc.triangles,
-        &sc.cape,
-        opts.texture,
-        opts.cape,
-        eye,
-        center,
-        sc.fov,
-        sc.size,
-    ))
+    Ok(rasterize(&sc.layers, eye, center, sc.fov, sc.size))
+}
+
+/// Triangles drawn with one texture. A scene draws its layers in order: the
+/// body, any animated persona parts, then the cape.
+pub(crate) struct Layer<'a> {
+    pub triangles: Vec<Triangle>,
+    pub texture: &'a RgbaImage,
+}
+
+impl Scene<'_> {
+    /// What the camera is fitted around: every layer.
+    pub(crate) fn framing(&self) -> Vec<Triangle> {
+        self.layers
+            .iter()
+            .flat_map(|l| l.triangles.iter().copied())
+            .collect()
+    }
 }
 
 fn bone_map(geo: &Geometry) -> HashMap<&str, &Bone> {
     geo.bones.iter().map(|b| (b.name.as_str(), b)).collect()
 }
 
+/// Bone names compare ignoring ASCII case, as Bedrock compares them: persona
+/// models name their limbs "leftarm" where vanilla says "leftArm".
+/// See docs/geometry-format.md#bone-names-ignore-case.
+pub(crate) fn same_bone(a: &str, b: &str) -> bool {
+    a.eq_ignore_ascii_case(b)
+}
+
 fn is_descendant(by_name: &HashMap<&str, &Bone>, name: &str, ancestor: &str) -> bool {
     let mut seen: Vec<&str> = Vec::new();
     let mut cur = name;
     while !cur.is_empty() && !seen.contains(&cur) {
-        if cur == ancestor {
+        if same_bone(cur, ancestor) {
             return true;
         }
         seen.push(cur);
@@ -428,8 +526,8 @@ fn include_for_view(geo: &Geometry, view: View) -> Option<Include<'_>> {
             is_descendant(&by_name, name, "head")
                 || is_descendant(&by_name, name, "leftArm")
                 || is_descendant(&by_name, name, "rightArm")
-                || name == "body"
-                || name == "waist"
+                || same_bone(name, "body")
+                || same_bone(name, "waist")
         })),
         View::Body => None,
     }
@@ -538,13 +636,9 @@ pub(crate) fn camera_for_yaw_pitch(
     )
 }
 
-/// Draws the body, then the cape with its own texture.
-#[allow(clippy::too_many_arguments)]
+/// Draws each layer with its own texture, in order.
 pub(crate) fn rasterize(
-    triangles: &[Triangle],
-    cape: &[Triangle],
-    texture: &RgbaImage,
-    cape_texture: Option<&RgbaImage>,
+    layers: &[Layer],
     eye: Vec3,
     center: Vec3,
     fov: f64,
@@ -555,13 +649,12 @@ pub(crate) fn rasterize(
     // divide. See docs/design-decisions.md#why-no-viewport-in-the-shader-matrix.
     let matrix =
         Mat4::look_at(eye, center, Vec3::new(0.0, 1.0, 0.0)).perspective(fov, 1.0, 1.0, 500.0);
-    let tex = Texture::new(texture);
-    for t in triangles {
-        ctx.draw_triangle(t, &matrix, &tex);
-    }
-    if let Some(cape_texture) = cape_texture {
-        let tex = Texture::new(cape_texture);
-        for t in cape {
+    for l in layers {
+        if l.triangles.is_empty() {
+            continue;
+        }
+        let tex = Texture::new(l.texture);
+        for t in &l.triangles {
             ctx.draw_triangle(t, &matrix, &tex);
         }
     }

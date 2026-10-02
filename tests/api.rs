@@ -244,3 +244,49 @@ fn geometry_tree() {
         Err(Error::NoGeometryModels)
     ));
 }
+
+/// A persona's body is poly meshes drawn in 3D; its head comes only from the
+/// face texture.
+#[test]
+fn persona_mesh_renders_in_3d() {
+    let geos =
+        parse_geometry(&std::fs::read("testdata/parity/persona-mesh-geometry.json").unwrap())
+            .unwrap();
+    let tex = RgbaImage::from_pixel(64, 64, Rgba([10, 200, 10, 255]));
+    let mut face = RgbaImage::new(32, 64);
+    for y in 0..16 {
+        for x in 0..32 {
+            face.put_pixel(x, y, Rgba([255, 0, 0, 255]));
+        }
+    }
+    let body = RenderOptions::new(&tex)
+        .geometry(&geos)
+        .size(64)
+        .render()
+        .unwrap();
+    assert!(body.pixels().any(|p| p.0[3] > 0));
+    let head = RenderOptions::new(&tex)
+        .geometry(&geos)
+        .view(View::Head)
+        .render();
+    assert!(matches!(head, Err(Error::EmptyView)), "{head:?}");
+    let head = RenderOptions::new(&tex)
+        .geometry(&geos)
+        .view(View::Head)
+        .animated(AnimatedType::Face, &face)
+        .size(64)
+        .render()
+        .unwrap();
+    assert_eq!(head.get_pixel(32, 32).0, [255, 0, 0, 255]);
+}
+
+/// The detector measures persona meshes on lowercase bones instead of calling
+/// the skin invisible.
+#[test]
+fn detector_measures_persona_mesh() {
+    let raw = std::fs::read("testdata/parity/persona-mesh-geometry.json").unwrap();
+    let opaque = RgbaImage::from_pixel(64, 64, Rgba([1, 2, 3, 255]));
+    let r = validate_skin_invisibility(&opaque, &raw);
+    assert!(!r.is_invisible && r.visible_parts == 6, "{r:?}");
+    assert!(validate_skin_invisibility(&RgbaImage::new(64, 64), &raw).is_invisible);
+}

@@ -8,6 +8,7 @@ use serde_json::Value;
 use crate::animation::{BonePose, Pose};
 use crate::geometry::{Bone, Cube, Geometry, read_f64s};
 use crate::jsonread::Reader;
+use crate::polymesh::add_poly_mesh;
 use crate::raster::{Mat4, Triangle, Vec3, Vertex};
 
 /// A texture-pixel rectangle for one cube face.
@@ -177,7 +178,7 @@ fn face_corner(face: &str, u: f64, v: f64, hx: f64, hy: f64, hz: f64) -> Vec3 {
     }
 }
 
-fn at(v: &[f64], i: usize) -> f64 {
+pub(crate) fn at(v: &[f64], i: usize) -> f64 {
     v.get(i).copied().unwrap_or(0.0)
 }
 
@@ -341,7 +342,7 @@ fn bone_world_matrices(geo: &Geometry, pose: &Pose) -> HashMap<String, Mat4> {
     result
 }
 
-/// Triangles for every cube whose bone passes `include` (None includes
+/// Triangles for every cube and poly mesh whose bone passes `include` (None includes
 /// everything), posed by `pose`.
 pub(crate) fn build_triangles(
     geo: &Geometry,
@@ -361,6 +362,16 @@ pub(crate) fn build_triangles(
             add_cube(
                 &mut triangles,
                 c,
+                b,
+                &world,
+                geo.texture_width,
+                geo.texture_height,
+            );
+        }
+        if let Some(m) = b.mesh() {
+            add_poly_mesh(
+                &mut triangles,
+                &m,
                 b,
                 &world,
                 geo.texture_width,

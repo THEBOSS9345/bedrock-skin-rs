@@ -52,6 +52,17 @@ fn legacy_texture() -> RgbaImage {
     RgbaImage::from_fn(64, 32, |x, y| Rgba([(x * 4) as u8, (y * 8) as u8, 60, 255]))
 }
 
+fn face_texture() -> RgbaImage {
+    RgbaImage::from_fn(32, 64, |x, y| {
+        let a = if (16..32).contains(&y) {
+            ((x * y * 5) % 256) as u8
+        } else {
+            255
+        };
+        Rgba([(x * 8) as u8, (y * 4) as u8, 200, a])
+    })
+}
+
 fn head_only() -> RgbaImage {
     let mut img = test_texture();
     for (x, y, p) in img.enumerate_pixels_mut() {
@@ -96,6 +107,12 @@ fn renders_match_go() {
         parsed("persona-geometry.json"),
         parsed("legacy-geometry.json"),
     );
+    let (mesh_geo, odd_geo, companion_geo) = (
+        parsed("persona-mesh-geometry.json"),
+        parsed("persona-mesh-odd.json"),
+        parsed("persona-companion-geometry.json"),
+    );
+    let face = face_texture();
     let scaled: Pose = [
         (
             "head",
@@ -261,6 +278,94 @@ fn renders_match_go() {
                 .size(96),
         ),
         ("tiny", RenderOptions::new(&test).view(View::Avatar).size(3)),
+        (
+            "mesh-body",
+            RenderOptions::new(&test).geometry(&mesh_geo).size(96),
+        ),
+        (
+            "mesh-face-iso",
+            RenderOptions::new(&test)
+                .geometry(&mesh_geo)
+                .animated(AnimatedType::Face, &face)
+                .angle(Angle::Iso)
+                .size(96),
+        ),
+        (
+            "mesh-face-head",
+            RenderOptions::new(&test)
+                .geometry(&mesh_geo)
+                .animated(AnimatedType::Face, &face)
+                .view(View::Head)
+                .size(80),
+        ),
+        (
+            "mesh-face-avatar",
+            RenderOptions::new(&semi)
+                .geometry(&mesh_geo)
+                .animated(AnimatedType::Face, &face)
+                .view(View::Avatar)
+                .size(64),
+        ),
+        (
+            "mesh-face-chest",
+            RenderOptions::new(&test)
+                .geometry(&mesh_geo)
+                .animated(AnimatedType::Face, &face)
+                .view(View::Chest)
+                .cape(&semi)
+                .size(72),
+        ),
+        (
+            "mesh-face-back",
+            RenderOptions::new(&test)
+                .geometry(&mesh_geo)
+                .animated(AnimatedType::Face, &face)
+                .cape(&semi)
+                .camera(Camera {
+                    yaw: 150.0,
+                    pitch: 20.0,
+                    ..Camera::default()
+                })
+                .size(96),
+        ),
+        (
+            "mesh-parts-hat",
+            RenderOptions::new(&test)
+                .geometry(&mesh_geo)
+                .animated(AnimatedType::Face, &face)
+                .parts(["HAT", "leftArm"])
+                .size(64),
+        ),
+        (
+            "mesh-odd",
+            RenderOptions::new(&test)
+                .geometry(&odd_geo)
+                .angle(Angle::Iso)
+                .size(96),
+        ),
+        (
+            "mesh-odd-head",
+            RenderOptions::new(&semi)
+                .geometry(&odd_geo)
+                .view(View::Head)
+                .size(64),
+        ),
+        (
+            "mesh-odd-chest",
+            RenderOptions::new(&test)
+                .geometry(&odd_geo)
+                .view(View::Chest)
+                .size(64),
+        ),
+        (
+            "mesh-companion",
+            RenderOptions::new(&test)
+                .geometry(&companion_geo)
+                .animated(AnimatedType::Body128, &semi)
+                .animated(AnimatedType::Face, &face)
+                .angle(Angle::Iso)
+                .size(96),
+        ),
     ];
     let mut failures = Vec::new();
     for (name, opts) in &cases {
@@ -328,6 +433,20 @@ fn animation_frames_match_go() {
             AnimationOptions::new(RenderOptions::new(&test).size(64), *a).fps(6),
         );
     }
+    let mesh_geo = parsed("persona-mesh-geometry.json");
+    let face = face_texture();
+    check(
+        "mesh-walk",
+        AnimationOptions::new(
+            RenderOptions::new(&test)
+                .geometry(&mesh_geo)
+                .animated(AnimatedType::Face, &face)
+                .angle(Angle::Iso)
+                .size(64),
+            &Motion::Walk,
+        )
+        .fps(4),
+    );
     let mol = &molang["animation.parity.molang"];
     check(
         "molang",
@@ -473,6 +592,36 @@ fn reports_match_go() {
             "persona",
             semi_texture(),
             read("persona-geometry.json"),
+            SkinOptions::default(),
+        ),
+        (
+            "mesh",
+            test_texture(),
+            read("persona-mesh-geometry.json"),
+            SkinOptions::default(),
+        ),
+        (
+            "mesh-semi",
+            semi_texture(),
+            read("persona-mesh-geometry.json"),
+            SkinOptions::default(),
+        ),
+        (
+            "mesh-odd",
+            semi_texture(),
+            read("persona-mesh-odd.json"),
+            SkinOptions::default(),
+        ),
+        (
+            "mesh-128",
+            custom_texture(),
+            read("persona-mesh-geometry.json"),
+            SkinOptions::default(),
+        ),
+        (
+            "companion",
+            head_only(),
+            read("persona-companion-geometry.json"),
             SkinOptions::default(),
         ),
         (

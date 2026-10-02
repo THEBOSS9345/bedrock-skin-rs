@@ -11,10 +11,11 @@ use bedrock_skin::*;
 | Rust | What it does | Go |
 | --- | --- | --- |
 | `render(&RenderOptions)` | Renders a square image. | `Render` |
-| `RenderOptions::new(&texture)` | Options with everything defaulted: full body, front, 512px, default model. Builder methods `.geometry()`, `.identifier()`, `.cape()`, `.view()`, `.angle()`, `.parts()`, `.camera()`, `.size()`, `.pose()` set one field each; the fields are public too. | `Options` |
+| `RenderOptions::new(&texture)` | Options with everything defaulted: full body, front, 512px, default model. Builder methods `.geometry()`, `.identifier()`, `.cape()`, `.view()`, `.angle()`, `.parts()`, `.camera()`, `.size()`, `.pose()` set one field each, and `.animated(kind, &texture)` adds a persona animation image; the fields are public too. | `Options` |
+| `AnimatedTexture`, `AnimatedType` | A persona animation image and its kind (`Face`, `Body32`, `Body128`; `from_protocol` maps the protocol's number). Each draws its `geometry.animated_*` entry. | `AnimatedTexture`, `AnimatedType` |
 | `RenderOptions::render()`, `render_png()` | Renders these options, to an image or to PNG bytes. | `Options.Render`, `RenderPNG` |
 | `render_bytes(&BytesOptions)` | Encoded texture, geometry and cape bytes in, PNG bytes out. | `RenderBytes` |
-| `render_2d(&texture, view, size)` | The flat paper-doll crop persona skins fall back to. | `Render2D` |
+| `render_2d(&texture, view, size)` | The flat paper-doll crop for geometry that draws nothing. | `Render2D` |
 | `View` | `Body`, `Chest`, `Head`, `Avatar`. | `ViewBody`... |
 | `Angle` | `Front`, `Iso`. | `AngleFront`, `AngleIso` |
 | `Camera` | Explicit `yaw`, `pitch`, `fov`, `margin`; zero fields take defaults. | `Camera` |
@@ -43,7 +44,8 @@ Textures and results are `image::RgbaImage`: straight (not premultiplied) 8-bit 
 | `find_cape(&geos)` | The entry with a `cape` bone. | `FindCape` |
 | `complexity(&geos)` | Total bones and cubes, to bound untrusted uploads. | `Complexity` |
 | `parse_resource_patch(&bytes)` | The patch's `default` and `cape` identifiers. | `ParseResourcePatch` |
-| `Geometry`, `Bone`, `Cube`, `Locator`, `FaceUv` | The model, as the file has it. `Geometry::bone_by_name`, `children`, `locator`, `total_cubes`; `Cube::box_uv`, `face_uvs`. | same names |
+| `Geometry`, `Bone`, `Cube`, `Locator`, `FaceUv` | The model, as the file has it. `Geometry::bone_by_name`, `children`, `locator`, `total_cubes`, `has_mesh`; `Bone::mesh`; `Cube::box_uv`, `face_uvs`. | same names |
+| `PolyMesh` | A bone's poly mesh: `normalized_uvs`, `positions`, `normals`, `uvs`, `polys`. | `PolyMesh` |
 | `parse_geometry_tree(&bytes)` | The whole file, every field, for picking values by path: `GeometryTree::select`, `get`, `identifiers`, `geometries`. | `ParseGeometryTree` |
 | `GeometryValue` | A picked value: `path`, `value`, and `as_f64`, `as_f64s`, `as_str`, `bone`, `cube`, `locator`, `decode`, `json`. | `GeometryValue` |
 
@@ -77,7 +79,7 @@ How the verdict is reached:
 
 - **With geometry**, every bone with cubes is checked where its UVs actually point in the texture, and a bone too small to see counts as invisible however opaque it is. 0-1 standard parts visible is `Invisible`, 2-3 is `Suspicious`.
 - **Without geometry**, the standard layout is assumed, so the verdict is lenient: only no visible parts is `Invisible`.
-- **Persona skins** (bones, no cubes) are trusted. Geometry that does not parse is not a persona skin - it is checked like no geometry, so garbage cannot switch the detector off.
+- **Persona skins** have their poly meshes measured; parts drawn only by an animated entry (the head), whose texture the detector is not given, are trusted. Bones that draw nothing are trusted visible. Geometry that does not parse is checked like no geometry, so garbage cannot switch the detector off.
 - Overlay layers (hat, jacket, sleeves, pants) count toward the part they cover; a cape never counts.
 
 ## Errors

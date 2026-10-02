@@ -33,8 +33,9 @@ A pure Rust library that renders Minecraft Bedrock skins to images and detects i
 src/lib.rs          exports, Error, image helpers, render_bytes
 src/render.rs       RenderOptions, views, framing, the camera
 src/mesh.rs         bones and cubes to triangles
+src/polymesh.rs     poly meshes: persona skins
 src/raster.rs       the rasterizer (fauxgl, ported)
-src/render2d.rs     the persona fallback
+src/render2d.rs     the flat fallback, for geometry that draws nothing
 src/geometry.rs     geometry.json, both formats
 src/geoquery.rs     GeometryTree: values by path
 src/jsonread.rs     reading JSON with Go's rules
@@ -45,4 +46,25 @@ src/gomath.rs       Go's trigonometry, ported
 src/invisible.rs    the visibility checks
 src/detect.rs       Skin and SkinReport
 tools/parity        the Go program that writes testdata/parity
+tools/skincheck     renders a skin database with both libraries and rates it
 ```
+
+## Checking against real skins
+
+`tools/skincheck` renders every skin in a scout database with both
+libraries - every view, the cape, every frame of every animation - compares
+them byte for byte, and rates each skin with checks for blank, cut-off,
+off-centre, wrong-coloured and motionless renders and for the detector
+disagreeing with the picture:
+
+```
+cd tools/skincheck
+cargo run --release -- export --scout <folder with scout.db and skins/>
+cargo run --release -- go    --threads 7
+cargo run --release -- check --threads 7
+```
+
+It writes `work/report.html`. `work/` holds real players' skins: it is
+git-ignored and must stay local, as must any database. `--threads` sets
+how many cores it uses. It is the measuring instrument, so do not tune its
+checks to make a library change look better.

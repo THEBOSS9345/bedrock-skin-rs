@@ -285,11 +285,11 @@ pub fn render_frames(opts: &AnimationOptions) -> Result<Vec<RgbaImage>, Error> {
             .options
             .scene(&opts.animation.pose(i as f64 / fps as f64))?;
         if let Some(flat) = sc.flat {
-            // A persona skin has nothing to move: every frame is the flat crop.
+            // Geometry that draws nothing has nothing to move: every frame is
+            // the flat crop.
             return Ok(vec![flat; frames]);
         }
-        sweep.extend_from_slice(&sc.triangles);
-        sweep.extend_from_slice(&sc.cape);
+        sweep.extend(sc.framing());
         scenes.push(sc);
     }
     let first = &scenes[0];
@@ -297,18 +297,7 @@ pub fn render_frames(opts: &AnimationOptions) -> Result<Vec<RgbaImage>, Error> {
         camera_for_yaw_pitch(&sweep, first.fov, first.margin, first.yaw, first.pitch);
     Ok(scenes
         .iter()
-        .map(|sc| {
-            rasterize(
-                &sc.triangles,
-                &sc.cape,
-                opts.options.texture,
-                opts.options.cape,
-                eye,
-                center,
-                sc.fov,
-                sc.size,
-            )
-        })
+        .map(|sc| rasterize(&sc.layers, eye, center, sc.fov, sc.size))
         .collect())
 }
 

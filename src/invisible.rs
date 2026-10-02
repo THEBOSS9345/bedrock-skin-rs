@@ -6,8 +6,11 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 
 use image::RgbaImage;
 
-use crate::geometry::{Bone, parse_geometry};
+use crate::geometry::{Bone, Geometry, parse_geometry};
+use crate::gomath;
 use crate::mesh::{box_uv_rects, cube_dims, cube_uv_rects};
+use crate::polymesh::{PolyMesh, draws_something};
+use crate::render::{AnimatedType, animated_entry, same_bone};
 
 /// The minimum alpha (0..1) for a pixel to count as visible: anything but
 /// fully transparent.
@@ -114,23 +117,40 @@ const LEGACY32_BODY_PARTS: [(&str, [f64; 5]); 4] = [
 pub(crate) const STANDARD_PART_NAMES: [&str; 6] =
     ["head", "body", "rightArm", "leftArm", "rightLeg", "leftLeg"];
 
-/// Clothing overlay bones fold into the standard part they cover.
-fn overlay_parent(name: &str) -> Option<&'static str> {
-    Some(match name {
-        "hat" => "head",
-        "jacket" => "body",
-        "leftSleeve" => "leftArm",
-        "rightSleeve" => "rightArm",
-        "leftPants" => "leftLeg",
-        "rightPants" => "rightLeg",
-        _ => return None,
-    })
+/// Clothing overlay bones and the standard part each covers.
+const OVERLAYS: [(&str, &str); 6] = [
+    ("hat", "head"),
+    ("jacket", "body"),
+    ("leftSleeve", "leftArm"),
+    ("rightSleeve", "rightArm"),
+    ("leftPants", "leftLeg"),
+    ("rightPants", "rightLeg"),
+];
+
+/// The standard part a bone name spells, ignoring case as Bedrock does
+/// (persona models say "leftarm").
+fn standard_name(name: &str) -> Option<&'static str> {
+    STANDARD_PART_NAMES
+        .into_iter()
+        .find(|std| same_bone(name, std))
+}
+
+/// The standard part a bone's visibility counts toward: the part itself, or
+/// the part an overlay covers. Any other bone counts for itself.
+fn part_of(name: &str) -> &str {
+    if let Some(std) = standard_name(name) {
+        return std;
+    }
+    OVERLAYS
+        .iter()
+        .find(|(overlay, _)| same_bone(name, overlay))
+        .map_or(name, |(_, part)| part)
 }
 
 /// Accessories are reported but never count: an opaque cape must not make an
 /// invisible body pass.
 fn is_accessory(name: &str) -> bool {
-    name == "cape"
+    same_bone(name, "cape")
 }
 
 /// Checks whether a skin has visible body parts. With geometry (raw
@@ -204,17 +224,28 @@ fn persona_result() -> SkinVisibilityResult {
 /// Bones by name; a repeated name's last bone wins, as in Go's map.
 type Bones = HashMap<String, Bone>;
 
-fn scan_parts(texture: &RgbaImage, bones: Option<&Bones>) -> Scan {
+/// The entry the detector judges, its bones by name, and the persona
+/// animated entries that draw alongside it.
+struct Parsed {
+    geo: Geometry,
+    bones: Bones,
+    companions: Vec<Geometry>,
+}
+
+fn scan_parts(texture: &RgbaImage, geo: Option<&Parsed>) -> Scan {
+    let bones = geo.map(|g| &g.bones);
     let (tw, th) = (texture.width() as f64, texture.height() as f64);
     if tw <= 0.0 || th <= 0.0 {
         return Scan::Unusable;
     }
-    let bones_with_cubes = bones.is_some_and(|b| b.values().any(|b| !b.cubes.is_empty()));
-    if bones_with_cubes {
-        // Box-UV geometry gives authoritative regions, so the verdict can be
+    if let Some(g) = geo.filter(|g| g.geo.has_mesh()) {
+        // The geometry gives authoritative regions, so the verdict can be
         // strict.
+        let mut parts = check_from_geometry(g, texture, tw, th);
+        let trusted = animated_parts(&parts, &g.companions);
+        parts.extend(trusted);
         return Scan::Parts {
-            parts: check_from_geometry(bones.unwrap(), texture, tw, th),
+            parts,
             strict: true,
         };
     }
@@ -240,15 +271,18 @@ fn uv_scale(tw: f64, th: f64) -> (f64, f64) {
     }
 }
 
-fn check_from_geometry(
-    bones: &Bones,
-    texture: &RgbaImage,
-    tw: f64,
-    th: f64,
-) -> Vec<SkinPartResult> {
-    let (sx, sy) = uv_scale(tw, th);
+/// UVs are scaled from the geometry's declared texture size, as the renderer
+/// samples them. See docs/design-decisions.md#why-the-detector-scales-by-the-declared-texture-size.
+fn check_from_geometry(p: &Parsed, texture: &RgbaImage, tw: f64, th: f64) -> Vec<SkinPartResult> {
+    let bones = &p.bones;
+    let (sx, sy) = (tw / p.geo.texture_width, th / p.geo.texture_height);
     let measure = |name: &str, bone: &Bone| {
-        let (total, transparent) = count_bone_texture(bone, texture, sx, sy);
+        let (mut total, mut transparent) = count_bone_texture(bone, texture, sx, sy);
+        if let Some(m) = bone.mesh() {
+            let (t, tr) = count_poly_texture(&m, texture, sx, sy);
+            total += t;
+            transparent += tr;
+        }
         SkinPartResult {
             name: name.to_string(),
             visible: true,
@@ -268,20 +302,122 @@ fn check_from_geometry(
     // The six standard parts first, in their fixed order; then the rest by
     // name, so a report is the same every time.
     for name in STANDARD_PART_NAMES {
-        if let Some(b) = bones.get(name).filter(|b| !b.cubes.is_empty()) {
-            seen.insert(name);
+        if let Some(b) = find_bone(p, name).filter(|b| draws_something(b)) {
+            seen.insert(b.name.as_str());
             results.push(measure(name, b));
         }
     }
     let rest: BTreeMap<&str, &Bone> = bones
         .iter()
-        .filter(|(n, b)| !seen.contains(n.as_str()) && !b.cubes.is_empty())
+        .filter(|(n, b)| !seen.contains(n.as_str()) && draws_something(b))
         .map(|(n, b)| (n.as_str(), b))
         .collect();
     for (name, b) in rest {
         results.push(measure(name, b));
     }
     results
+}
+
+/// A standard part's bone: the exact name if present, else the first bone
+/// spelling it in another case.
+fn find_bone<'a>(p: &'a Parsed, name: &str) -> Option<&'a Bone> {
+    if let Some(b) = p.bones.get(name) {
+        return Some(b);
+    }
+    let found = p.geo.bones.iter().find(|b| same_bone(&b.name, name))?;
+    p.bones.get(&found.name)
+}
+
+/// The standard parts a persona skin draws only from its animated entries
+/// (the face, animated limbs), trusted visible: their textures travel in the
+/// skin's animations, which the detector is not given. A part measured from
+/// the main texture keeps its measurement.
+/// See docs/design-decisions.md#why-animated-persona-parts-are-trusted.
+fn animated_parts(measured: &[SkinPartResult], companions: &[Geometry]) -> Vec<SkinPartResult> {
+    let have: HashSet<&str> = measured.iter().map(|p| part_of(&p.name)).collect();
+    STANDARD_PART_NAMES
+        .into_iter()
+        .filter(|std| !have.contains(std))
+        .filter(|std| {
+            companions.iter().any(|g| {
+                g.bones
+                    .iter()
+                    .any(|b| part_of(&b.name) == *std && draws_something(b))
+            })
+        })
+        .map(|std| SkinPartResult {
+            name: std.to_string(),
+            visible: true,
+            fraction: 1.0,
+            pixels: 0,
+            transparent: 0,
+            from_geo: true,
+            tiny: false,
+        })
+        .collect()
+}
+
+/// The texture pixels a poly mesh's polygons cover - those whose centre falls
+/// inside one - and how many are transparent. Normalized UVs span the whole
+/// texture, V counting up; pixel UVs scale like a cube's.
+fn count_poly_texture(m: &PolyMesh, texture: &RgbaImage, sx: f64, sy: f64) -> (usize, usize) {
+    let (w, h) = (texture.width() as f64, texture.height() as f64);
+    let (mut total, mut transparent) = (0, 0);
+    for poly in m.polygons() {
+        let pts: Vec<[f64; 2]> = poly
+            .iter()
+            .map(|c| {
+                if m.normalized_uvs {
+                    [c.uv[0] * w, (1.0 - c.uv[1]) * h]
+                } else {
+                    [c.uv[0] * sx, c.uv[1] * sy]
+                }
+            })
+            .collect();
+        let (mut x0, mut y0, mut x1, mut y1) = (pts[0][0], pts[0][1], pts[0][0], pts[0][1]);
+        for p in &pts[1..] {
+            (x0, x1) = (gomath::min(x0, p[0]), gomath::max(x1, p[0]));
+            (y0, y1) = (gomath::min(y0, p[1]), gomath::max(y1, p[1]));
+        }
+        let (x0, x1) = (gomath::go_int(x0.floor()), gomath::go_int(x1.ceil()));
+        let (y0, y1) = (gomath::go_int(y0.floor()), gomath::go_int(y1.ceil()));
+        // image.Rect puts the corners in order, then clampedBounds clips.
+        let (x0, x1) = (x0.min(x1).max(0), x0.max(x1).min(texture.width() as i64));
+        let (y0, y1) = (y0.min(y1).max(0), y0.max(y1).min(texture.height() as i64));
+        if x0 >= x1 || y0 >= y1 {
+            continue;
+        }
+        for y in y0..y1 {
+            for x in x0..x1 {
+                if !in_polygon(&pts, x as f64 + 0.5, y as f64 + 0.5) {
+                    continue;
+                }
+                total += 1;
+                let a = texture.get_pixel(x as u32, y as u32).0[3] as u32;
+                if (a | a << 8) as f64 / 65535.0 <= DEFAULT_MIN_VISIBLE_ALPHA {
+                    transparent += 1;
+                }
+            }
+        }
+    }
+    (total, transparent)
+}
+
+/// Whether (px, py) is inside the polygon fanned from its first corner, edges
+/// included.
+fn in_polygon(pts: &[[f64; 2]], px: f64, py: f64) -> bool {
+    (1..pts.len() - 1).any(|i| {
+        let (a, b, c) = (pts[0], pts[i], pts[i + 1]);
+        let d = [edge(a, b, px, py), edge(b, c, px, py), edge(c, a, px, py)];
+        let neg = d.iter().any(|&v| v < 0.0);
+        let pos = d.iter().any(|&v| v > 0.0);
+        !(neg && pos)
+    })
+}
+
+/// The 2D cross product (b - a) x (p - a).
+fn edge(a: [f64; 2], b: [f64; 2], px: f64, py: f64) -> f64 {
+    (b[0] - a[0]) * (py - a[1]) - (b[1] - a[1]) * (px - a[0])
 }
 
 fn count_bone_texture(bone: &Bone, texture: &RgbaImage, sx: f64, sy: f64) -> (usize, usize) {
@@ -369,7 +505,7 @@ pub(crate) fn classify(
         if is_accessory(&r.name) {
             continue;
         }
-        let standard = overlay_parent(&r.name).unwrap_or(&r.name).to_string();
+        let standard = part_of(&r.name).to_string();
         if r.visible {
             visible_parent.insert(standard);
         }
@@ -393,7 +529,7 @@ pub(crate) fn classify(
 /// of the box around each bone's cubes, inflate included, must reach
 /// `min_size`. Violations are ordered by bone name.
 pub fn validate_geometry_size(geometry: &[u8], min_size: f64) -> GeometrySizeResult {
-    geometry_size_of(get_geometry(geometry).as_ref(), min_size)
+    geometry_size_of(get_geometry(geometry).map(|g| g.bones).as_ref(), min_size)
 }
 
 fn geometry_size_of(bones: Option<&Bones>, min_size: f64) -> GeometrySizeResult {
@@ -404,7 +540,7 @@ fn geometry_size_of(bones: Option<&Bones>, min_size: f64) -> GeometrySizeResult 
     };
     let empty = Bones::new();
     let bones = bones.unwrap_or(&empty);
-    if !bones.contains_key("head") {
+    if !bones.keys().any(|n| same_bone(n, "head")) {
         return GeometrySizeResult {
             pass: false,
             violations: vec![GeometryViolation {
@@ -447,19 +583,21 @@ pub(crate) fn validate_with(
     th: Thresholds,
 ) -> SkinVisibilityResult {
     let th = th.resolved();
-    let bones = get_geometry(geometry);
-    let (mut parts, strict) = match scan_parts(texture, bones.as_ref()) {
+    let geo = get_geometry(geometry);
+    let (mut parts, strict) = match scan_parts(texture, geo.as_ref()) {
         Scan::Unusable => return unusable_result(),
         Scan::Persona => return persona_result(),
         Scan::Parts { parts, strict } => (parts, strict),
     };
     // Size only means something when geometry parsed into bones; without,
     // the missing-head violation would flag an ordinary skin.
+    let bones = geo.map(|g| g.bones);
     if bones.as_ref().is_some_and(|b| !b.is_empty()) {
         let tiny: HashSet<String> = geometry_size_of(bones.as_ref(), th.min_geometry_size)
             .violations
             .into_iter()
-            .map(|v| v.bone)
+            // Standard parts are reported under their standard spelling.
+            .map(|v| standard_name(&v.bone).map_or(v.bone, str::to_string))
             .collect();
         for p in &mut parts {
             if tiny.contains(&p.name) {
@@ -545,9 +683,9 @@ fn bone_world_size(b: &Bone) -> f64 {
     largest
 }
 
-/// The geometry's bones by name, from the entry with the most cubes; None
-/// for empty or unreadable input.
-fn get_geometry(raw: &[u8]) -> Option<Bones> {
+/// The entry with the most cubes, and the persona animated entries drawn
+/// with it; None for empty or unreadable input.
+fn get_geometry(raw: &[u8]) -> Option<Parsed> {
     if raw.is_empty() {
         return None;
     }
@@ -558,10 +696,23 @@ fn get_geometry(raw: &[u8]) -> Option<Bones> {
             geo = g;
         }
     }
-    Some(
-        geo.bones
+    let companions = [
+        AnimatedType::Face,
+        AnimatedType::Body32,
+        AnimatedType::Body128,
+    ]
+    .into_iter()
+    .filter_map(|t| animated_entry(&geos, t))
+    .filter(|g| g.identifier != geo.identifier)
+    .cloned()
+    .collect();
+    Some(Parsed {
+        bones: geo
+            .bones
             .iter()
             .map(|b| (b.name.clone(), b.clone()))
             .collect(),
-    )
+        geo: geo.clone(),
+        companions,
+    })
 }
