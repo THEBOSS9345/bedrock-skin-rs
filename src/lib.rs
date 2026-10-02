@@ -364,13 +364,13 @@ impl<'a> AnimationBytesOptions<'a> {
 }
 
 /// Renders an animation from encoded bytes to GIF bytes:
-/// [`render_gif`](crate::render_gif) with decoding folded in.
+/// [`render_gif`] with decoding folded in.
 pub fn render_gif_bytes(opts: &AnimationBytesOptions) -> Result<Vec<u8>, Error> {
     opts.with_animation(|ao| ao.render_gif())
 }
 
 /// Renders an animation from encoded bytes and returns every frame as PNG
-/// bytes, in order: [`render_frames`](crate::render_frames) with decoding and
+/// bytes, in order: [`render_frames`] with decoding and
 /// encoding folded in.
 pub fn render_frames_png(opts: &AnimationBytesOptions) -> Result<Vec<Vec<u8>>, Error> {
     opts.with_animation(|ao| ao.render_frames()?.iter().map(encode_png).collect())
