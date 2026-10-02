@@ -1,0 +1,1582 @@
+[
+ {
+  "File": "custom-geometry.json",
+  "Path": "",
+  "Values": [
+   {
+    "Path": "geometry.parity.custom",
+    "Value": {
+     "bones": [
+      {
+       "name": "root",
+       "pivot": [
+        0,
+        0,
+        0
+       ]
+      },
+      {
+       "cubes": [
+        {
+         "origin": [
+          -4,
+          12,
+          -2
+         ],
+         "size": [
+          8,
+          12,
+          4
+         ],
+         "uv": [
+          16,
+          16
+         ]
+        },
+        {
+         "inflate": 0.25,
+         "origin": [
+          -4,
+          12,
+          -2
+         ],
+         "size": [
+          8,
+          12,
+          4
+         ],
+         "uv": [
+          16,
+          32
+         ]
+        }
+       ],
+       "name": "body",
+       "parent": "root",
+       "pivot": [
+        0,
+        24,
+        0
+       ]
+      },
+      {
+       "cubes": [
+        {
+         "origin": [
+          -4,
+          24,
+          -4
+         ],
+         "size": [
+          8,
+          8,
+          8
+         ],
+         "uv": [
+          0,
+          0
+         ]
+        }
+       ],
+       "name": "head",
+       "parent": "body",
+       "pivot": [
+        0,
+        24,
+        0
+       ],
+       "rotation": [
+        -10,
+        15,
+        5
+       ]
+      },
+      {
+       "cubes": [
+        {
+         "origin": [
+          1,
+          32,
+          -1
+         ],
+         "pivot": [
+          2,
+          32,
+          0
+         ],
+         "rotation": [
+          0,
+          0,
+          -25
+         ],
+         "size": [
+          2,
+          6,
+          2
+         ],
+         "uv": {
+          "east": {
+           "uv": [
+            66,
+            0
+           ],
+           "uv_size": [
+            2,
+            6
+           ]
+          },
+          "north": {
+           "uv": [
+            64,
+            0
+           ],
+           "uv_size": [
+            2,
+            6
+           ]
+          },
+          "south": {
+           "uv": [
+            68,
+            0
+           ],
+           "uv_size": [
+            -2,
+            6
+           ]
+          },
+          "up": {
+           "uv": [
+            72,
+            0
+           ],
+           "uv_size": [
+            2,
+            2
+           ]
+          },
+          "west": {
+           "uv": [
+            70,
+            0
+           ],
+           "uv_size": [
+            2,
+            6
+           ]
+          }
+         }
+        }
+       ],
+       "name": "horn",
+       "parent": "head",
+       "pivot": [
+        2,
+        32,
+        0
+       ]
+      },
+      {
+       "cubes": [
+        {
+         "origin": [
+          -8,
+          12,
+          -2
+         ],
+         "size": [
+          4,
+          12,
+          4
+         ],
+         "uv": [
+          40,
+          16
+         ]
+        }
+       ],
+       "name": "rightArm",
+       "parent": "body",
+       "pivot": [
+        -5,
+        22,
+        0
+       ],
+       "rotation": [
+        20,
+        0,
+        10
+       ]
+      },
+      {
+       "cubes": [
+        {
+         "origin": [
+          4,
+          12,
+          -2
+         ],
+         "size": [
+          4,
+          12,
+          4
+         ],
+         "uv": [
+          40,
+          16
+         ]
+        }
+       ],
+       "mirror": true,
+       "name": "leftArm",
+       "parent": "body",
+       "pivot": [
+        5,
+        22,
+        0
+       ]
+      },
+      {
+       "cubes": [
+        {
+         "origin": [
+          -3.9,
+          0,
+          -2
+         ],
+         "size": [
+          4,
+          12,
+          4
+         ],
+         "uv": [
+          0,
+          16
+         ]
+        }
+       ],
+       "name": "rightLeg",
+       "parent": "root",
+       "pivot": [
+        -1.9,
+        12,
+        0
+       ]
+      },
+      {
+       "cubes": [
+        {
+         "mirror": true,
+         "origin": [
+          -0.1,
+          0,
+          -2
+         ],
+         "size": [
+          4,
+          12,
+          4
+         ],
+         "uv": [
+          0,
+          16
+         ]
+        }
+       ],
+       "name": "leftLeg",
+       "parent": "root",
+       "pivot": [
+        1.9,
+        12,
+        0
+       ]
+      },
+      {
+       "cubes": [
+        {
+         "inflate": -0.1,
+         "origin": [
+          -0.5,
+          12,
+          2
+         ],
+         "size": [
+          1,
+          1,
+          8
+         ],
+         "uv": [
+          80,
+          0
+         ]
+        }
+       ],
+       "name": "tail",
+       "parent": "body",
+       "pivot": [
+        0,
+        13,
+        2
+       ],
+       "rotation": [
+        45,
+        0,
+        0
+       ]
+      },
+      {
+       "cubes": [
+        {
+         "origin": [
+          0,
+          30,
+          -4.2
+         ],
+         "size": [
+          0.1,
+          0.1,
+          0.1
+         ],
+         "uv": [
+          90,
+          0
+         ]
+        }
+       ],
+       "name": "speck",
+       "parent": "head",
+       "pivot": [
+        0,
+        30,
+        0
+       ]
+      }
+     ],
+     "description": {
+      "identifier": "geometry.parity.custom",
+      "texture_height": 128,
+      "texture_width": 128,
+      "visible_bounds_height": 3,
+      "visible_bounds_offset": [
+       0,
+       1.5,
+       0
+      ],
+      "visible_bounds_width": 2
+     }
+    }
+   }
+  ]
+ },
+ {
+  "File": "custom-geometry.json",
+  "Path": "*",
+  "Values": [
+   {
+    "Path": "geometry.parity.custom",
+    "Value": {
+     "bones": [
+      {
+       "name": "root",
+       "pivot": [
+        0,
+        0,
+        0
+       ]
+      },
+      {
+       "cubes": [
+        {
+         "origin": [
+          -4,
+          12,
+          -2
+         ],
+         "size": [
+          8,
+          12,
+          4
+         ],
+         "uv": [
+          16,
+          16
+         ]
+        },
+        {
+         "inflate": 0.25,
+         "origin": [
+          -4,
+          12,
+          -2
+         ],
+         "size": [
+          8,
+          12,
+          4
+         ],
+         "uv": [
+          16,
+          32
+         ]
+        }
+       ],
+       "name": "body",
+       "parent": "root",
+       "pivot": [
+        0,
+        24,
+        0
+       ]
+      },
+      {
+       "cubes": [
+        {
+         "origin": [
+          -4,
+          24,
+          -4
+         ],
+         "size": [
+          8,
+          8,
+          8
+         ],
+         "uv": [
+          0,
+          0
+         ]
+        }
+       ],
+       "name": "head",
+       "parent": "body",
+       "pivot": [
+        0,
+        24,
+        0
+       ],
+       "rotation": [
+        -10,
+        15,
+        5
+       ]
+      },
+      {
+       "cubes": [
+        {
+         "origin": [
+          1,
+          32,
+          -1
+         ],
+         "pivot": [
+          2,
+          32,
+          0
+         ],
+         "rotation": [
+          0,
+          0,
+          -25
+         ],
+         "size": [
+          2,
+          6,
+          2
+         ],
+         "uv": {
+          "east": {
+           "uv": [
+            66,
+            0
+           ],
+           "uv_size": [
+            2,
+            6
+           ]
+          },
+          "north": {
+           "uv": [
+            64,
+            0
+           ],
+           "uv_size": [
+            2,
+            6
+           ]
+          },
+          "south": {
+           "uv": [
+            68,
+            0
+           ],
+           "uv_size": [
+            -2,
+            6
+           ]
+          },
+          "up": {
+           "uv": [
+            72,
+            0
+           ],
+           "uv_size": [
+            2,
+            2
+           ]
+          },
+          "west": {
+           "uv": [
+            70,
+            0
+           ],
+           "uv_size": [
+            2,
+            6
+           ]
+          }
+         }
+        }
+       ],
+       "name": "horn",
+       "parent": "head",
+       "pivot": [
+        2,
+        32,
+        0
+       ]
+      },
+      {
+       "cubes": [
+        {
+         "origin": [
+          -8,
+          12,
+          -2
+         ],
+         "size": [
+          4,
+          12,
+          4
+         ],
+         "uv": [
+          40,
+          16
+         ]
+        }
+       ],
+       "name": "rightArm",
+       "parent": "body",
+       "pivot": [
+        -5,
+        22,
+        0
+       ],
+       "rotation": [
+        20,
+        0,
+        10
+       ]
+      },
+      {
+       "cubes": [
+        {
+         "origin": [
+          4,
+          12,
+          -2
+         ],
+         "size": [
+          4,
+          12,
+          4
+         ],
+         "uv": [
+          40,
+          16
+         ]
+        }
+       ],
+       "mirror": true,
+       "name": "leftArm",
+       "parent": "body",
+       "pivot": [
+        5,
+        22,
+        0
+       ]
+      },
+      {
+       "cubes": [
+        {
+         "origin": [
+          -3.9,
+          0,
+          -2
+         ],
+         "size": [
+          4,
+          12,
+          4
+         ],
+         "uv": [
+          0,
+          16
+         ]
+        }
+       ],
+       "name": "rightLeg",
+       "parent": "root",
+       "pivot": [
+        -1.9,
+        12,
+        0
+       ]
+      },
+      {
+       "cubes": [
+        {
+         "mirror": true,
+         "origin": [
+          -0.1,
+          0,
+          -2
+         ],
+         "size": [
+          4,
+          12,
+          4
+         ],
+         "uv": [
+          0,
+          16
+         ]
+        }
+       ],
+       "name": "leftLeg",
+       "parent": "root",
+       "pivot": [
+        1.9,
+        12,
+        0
+       ]
+      },
+      {
+       "cubes": [
+        {
+         "inflate": -0.1,
+         "origin": [
+          -0.5,
+          12,
+          2
+         ],
+         "size": [
+          1,
+          1,
+          8
+         ],
+         "uv": [
+          80,
+          0
+         ]
+        }
+       ],
+       "name": "tail",
+       "parent": "body",
+       "pivot": [
+        0,
+        13,
+        2
+       ],
+       "rotation": [
+        45,
+        0,
+        0
+       ]
+      },
+      {
+       "cubes": [
+        {
+         "origin": [
+          0,
+          30,
+          -4.2
+         ],
+         "size": [
+          0.1,
+          0.1,
+          0.1
+         ],
+         "uv": [
+          90,
+          0
+         ]
+        }
+       ],
+       "name": "speck",
+       "parent": "head",
+       "pivot": [
+        0,
+        30,
+        0
+       ]
+      }
+     ],
+     "description": {
+      "identifier": "geometry.parity.custom",
+      "texture_height": 128,
+      "texture_width": 128,
+      "visible_bounds_height": 3,
+      "visible_bounds_offset": [
+       0,
+       1.5,
+       0
+      ],
+      "visible_bounds_width": 2
+     }
+    }
+   }
+  ]
+ },
+ {
+  "File": "custom-geometry.json",
+  "Path": "geometry.parity.custom/bones/rightArm/pivot",
+  "Values": [
+   {
+    "Path": "geometry.parity.custom/bones/rightArm/pivot",
+    "Value": [
+     -5,
+     22,
+     0
+    ]
+   }
+  ]
+ },
+ {
+  "File": "custom-geometry.json",
+  "Path": "*/bones/*/cubes/*/size",
+  "Values": [
+   {
+    "Path": "geometry.parity.custom/bones/body/cubes/0/size",
+    "Value": [
+     8,
+     12,
+     4
+    ]
+   },
+   {
+    "Path": "geometry.parity.custom/bones/body/cubes/1/size",
+    "Value": [
+     8,
+     12,
+     4
+    ]
+   },
+   {
+    "Path": "geometry.parity.custom/bones/head/cubes/0/size",
+    "Value": [
+     8,
+     8,
+     8
+    ]
+   },
+   {
+    "Path": "geometry.parity.custom/bones/horn/cubes/0/size",
+    "Value": [
+     2,
+     6,
+     2
+    ]
+   },
+   {
+    "Path": "geometry.parity.custom/bones/rightArm/cubes/0/size",
+    "Value": [
+     4,
+     12,
+     4
+    ]
+   },
+   {
+    "Path": "geometry.parity.custom/bones/leftArm/cubes/0/size",
+    "Value": [
+     4,
+     12,
+     4
+    ]
+   },
+   {
+    "Path": "geometry.parity.custom/bones/rightLeg/cubes/0/size",
+    "Value": [
+     4,
+     12,
+     4
+    ]
+   },
+   {
+    "Path": "geometry.parity.custom/bones/leftLeg/cubes/0/size",
+    "Value": [
+     4,
+     12,
+     4
+    ]
+   },
+   {
+    "Path": "geometry.parity.custom/bones/tail/cubes/0/size",
+    "Value": [
+     1,
+     1,
+     8
+    ]
+   },
+   {
+    "Path": "geometry.parity.custom/bones/speck/cubes/0/size",
+    "Value": [
+     0.1,
+     0.1,
+     0.1
+    ]
+   }
+  ]
+ },
+ {
+  "File": "custom-geometry.json",
+  "Path": "*/bones/-1/name",
+  "Values": [
+   {
+    "Path": "geometry.parity.custom/bones/speck/name",
+    "Value": "speck"
+   }
+  ]
+ },
+ {
+  "File": "custom-geometry.json",
+  "Path": "*/description",
+  "Values": [
+   {
+    "Path": "geometry.parity.custom/description",
+    "Value": {
+     "identifier": "geometry.parity.custom",
+     "texture_height": 128,
+     "texture_width": 128,
+     "visible_bounds_height": 3,
+     "visible_bounds_offset": [
+      0,
+      1.5,
+      0
+     ],
+     "visible_bounds_width": 2
+    }
+   }
+  ]
+ },
+ {
+  "File": "custom-geometry.json",
+  "Path": "*/bones/HEAD/rotation",
+  "Values": [
+   {
+    "Path": "geometry.parity.custom/bones/head/rotation",
+    "Value": [
+     -10,
+     15,
+     5
+    ]
+   }
+  ]
+ },
+ {
+  "File": "custom-geometry.json",
+  "Path": "geometry.zeta",
+  "Values": []
+ },
+ {
+  "File": "custom-geometry.json",
+  "Path": "geometry.zeta/bones/0/cubes/0/uv",
+  "Values": []
+ },
+ {
+  "File": "custom-geometry.json",
+  "Path": "*/bones/head/locators/*",
+  "Values": []
+ },
+ {
+  "File": "custom-geometry.json",
+  "Path": "*/bones/horn/cubes/0/uv/*/uv_size",
+  "Values": [
+   {
+    "Path": "geometry.parity.custom/bones/horn/cubes/0/uv/east/uv_size",
+    "Value": [
+     2,
+     6
+    ]
+   },
+   {
+    "Path": "geometry.parity.custom/bones/horn/cubes/0/uv/north/uv_size",
+    "Value": [
+     2,
+     6
+    ]
+   },
+   {
+    "Path": "geometry.parity.custom/bones/horn/cubes/0/uv/south/uv_size",
+    "Value": [
+     -2,
+     6
+    ]
+   },
+   {
+    "Path": "geometry.parity.custom/bones/horn/cubes/0/uv/up/uv_size",
+    "Value": [
+     2,
+     2
+    ]
+   },
+   {
+    "Path": "geometry.parity.custom/bones/horn/cubes/0/uv/west/uv_size",
+    "Value": [
+     2,
+     6
+    ]
+   }
+  ]
+ },
+ {
+  "File": "custom-geometry.json",
+  "Path": "nope/bones",
+  "Values": []
+ },
+ {
+  "File": "custom-geometry.json",
+  "Path": "*/bones/99",
+  "Values": []
+ },
+ {
+  "File": "custom-geometry.json",
+  "Path": "/ */description/texture_width /",
+  "Values": []
+ },
+ {
+  "File": "custom-geometry.json",
+  "Path": "*/BONES/body/cubes/-2/inflate",
+  "Values": []
+ },
+ {
+  "File": "legacy-geometry.json",
+  "Path": "",
+  "Values": [
+   {
+    "Path": "geometry.alpha",
+    "Value": {
+     "bones": [
+      {
+       "cubes": [
+        {
+         "origin": [
+          -4,
+          24,
+          -4
+         ],
+         "size": [
+          8,
+          8,
+          8
+         ],
+         "uv": [
+          0,
+          0
+         ]
+        }
+       ],
+       "locators": {
+        "hand": {
+         "offset": [
+          1,
+          2,
+          3
+         ],
+         "rotation": [
+          0,
+          90,
+          0
+         ]
+        },
+        "lead": [
+         0,
+         24,
+         0
+        ]
+       },
+       "name": "head",
+       "pivot": [
+        0,
+        24,
+        0
+       ]
+      }
+     ],
+     "description": {
+      "identifier": "geometry.alpha",
+      "texture_height": 32,
+      "texture_width": 64,
+      "visible_bounds_width": 1
+     }
+    }
+   },
+   {
+    "Path": "geometry.zeta:geometry.humanoid",
+    "Value": {
+     "bones": [
+      {
+       "cubes": [
+        {
+         "origin": [
+          -4,
+          24,
+          -4
+         ],
+         "size": [
+          8,
+          8,
+          8
+         ],
+         "uv": [
+          0,
+          0
+         ]
+        }
+       ],
+       "name": "head",
+       "pivot": [
+        0,
+        24,
+        0
+       ]
+      },
+      {
+       "cubes": [
+        {
+         "origin": [
+          -4,
+          12,
+          -2
+         ],
+         "size": [
+          8,
+          12,
+          4
+         ],
+         "uv": [
+          16,
+          16
+         ]
+        }
+       ],
+       "name": "body",
+       "pivot": [
+        0,
+        24,
+        0
+       ]
+      }
+     ],
+     "description": {
+      "identifier": "geometry.zeta:geometry.humanoid",
+      "texture_height": 64,
+      "texture_width": 64
+     }
+    }
+   }
+  ]
+ },
+ {
+  "File": "legacy-geometry.json",
+  "Path": "*",
+  "Values": [
+   {
+    "Path": "geometry.alpha",
+    "Value": {
+     "bones": [
+      {
+       "cubes": [
+        {
+         "origin": [
+          -4,
+          24,
+          -4
+         ],
+         "size": [
+          8,
+          8,
+          8
+         ],
+         "uv": [
+          0,
+          0
+         ]
+        }
+       ],
+       "locators": {
+        "hand": {
+         "offset": [
+          1,
+          2,
+          3
+         ],
+         "rotation": [
+          0,
+          90,
+          0
+         ]
+        },
+        "lead": [
+         0,
+         24,
+         0
+        ]
+       },
+       "name": "head",
+       "pivot": [
+        0,
+        24,
+        0
+       ]
+      }
+     ],
+     "description": {
+      "identifier": "geometry.alpha",
+      "texture_height": 32,
+      "texture_width": 64,
+      "visible_bounds_width": 1
+     }
+    }
+   },
+   {
+    "Path": "geometry.zeta:geometry.humanoid",
+    "Value": {
+     "bones": [
+      {
+       "cubes": [
+        {
+         "origin": [
+          -4,
+          24,
+          -4
+         ],
+         "size": [
+          8,
+          8,
+          8
+         ],
+         "uv": [
+          0,
+          0
+         ]
+        }
+       ],
+       "name": "head",
+       "pivot": [
+        0,
+        24,
+        0
+       ]
+      },
+      {
+       "cubes": [
+        {
+         "origin": [
+          -4,
+          12,
+          -2
+         ],
+         "size": [
+          8,
+          12,
+          4
+         ],
+         "uv": [
+          16,
+          16
+         ]
+        }
+       ],
+       "name": "body",
+       "pivot": [
+        0,
+        24,
+        0
+       ]
+      }
+     ],
+     "description": {
+      "identifier": "geometry.zeta:geometry.humanoid",
+      "texture_height": 64,
+      "texture_width": 64
+     }
+    }
+   }
+  ]
+ },
+ {
+  "File": "legacy-geometry.json",
+  "Path": "geometry.parity.custom/bones/rightArm/pivot",
+  "Values": []
+ },
+ {
+  "File": "legacy-geometry.json",
+  "Path": "*/bones/*/cubes/*/size",
+  "Values": [
+   {
+    "Path": "geometry.alpha/bones/head/cubes/0/size",
+    "Value": [
+     8,
+     8,
+     8
+    ]
+   },
+   {
+    "Path": "geometry.zeta:geometry.humanoid/bones/head/cubes/0/size",
+    "Value": [
+     8,
+     8,
+     8
+    ]
+   },
+   {
+    "Path": "geometry.zeta:geometry.humanoid/bones/body/cubes/0/size",
+    "Value": [
+     8,
+     12,
+     4
+    ]
+   }
+  ]
+ },
+ {
+  "File": "legacy-geometry.json",
+  "Path": "*/bones/-1/name",
+  "Values": [
+   {
+    "Path": "geometry.alpha/bones/head/name",
+    "Value": "head"
+   },
+   {
+    "Path": "geometry.zeta:geometry.humanoid/bones/body/name",
+    "Value": "body"
+   }
+  ]
+ },
+ {
+  "File": "legacy-geometry.json",
+  "Path": "*/description",
+  "Values": [
+   {
+    "Path": "geometry.alpha/description",
+    "Value": {
+     "identifier": "geometry.alpha",
+     "texture_height": 32,
+     "texture_width": 64,
+     "visible_bounds_width": 1
+    }
+   },
+   {
+    "Path": "geometry.zeta:geometry.humanoid/description",
+    "Value": {
+     "identifier": "geometry.zeta:geometry.humanoid",
+     "texture_height": 64,
+     "texture_width": 64
+    }
+   }
+  ]
+ },
+ {
+  "File": "legacy-geometry.json",
+  "Path": "*/bones/HEAD/rotation",
+  "Values": []
+ },
+ {
+  "File": "legacy-geometry.json",
+  "Path": "geometry.zeta",
+  "Values": [
+   {
+    "Path": "geometry.zeta:geometry.humanoid",
+    "Value": {
+     "bones": [
+      {
+       "cubes": [
+        {
+         "origin": [
+          -4,
+          24,
+          -4
+         ],
+         "size": [
+          8,
+          8,
+          8
+         ],
+         "uv": [
+          0,
+          0
+         ]
+        }
+       ],
+       "name": "head",
+       "pivot": [
+        0,
+        24,
+        0
+       ]
+      },
+      {
+       "cubes": [
+        {
+         "origin": [
+          -4,
+          12,
+          -2
+         ],
+         "size": [
+          8,
+          12,
+          4
+         ],
+         "uv": [
+          16,
+          16
+         ]
+        }
+       ],
+       "name": "body",
+       "pivot": [
+        0,
+        24,
+        0
+       ]
+      }
+     ],
+     "description": {
+      "identifier": "geometry.zeta:geometry.humanoid",
+      "texture_height": 64,
+      "texture_width": 64
+     }
+    }
+   }
+  ]
+ },
+ {
+  "File": "legacy-geometry.json",
+  "Path": "geometry.zeta/bones/0/cubes/0/uv",
+  "Values": [
+   {
+    "Path": "geometry.zeta:geometry.humanoid/bones/head/cubes/0/uv",
+    "Value": [
+     0,
+     0
+    ]
+   }
+  ]
+ },
+ {
+  "File": "legacy-geometry.json",
+  "Path": "*/bones/head/locators/*",
+  "Values": [
+   {
+    "Path": "geometry.alpha/bones/head/locators/hand",
+    "Value": {
+     "offset": [
+      1,
+      2,
+      3
+     ],
+     "rotation": [
+      0,
+      90,
+      0
+     ]
+    }
+   },
+   {
+    "Path": "geometry.alpha/bones/head/locators/lead",
+    "Value": [
+     0,
+     24,
+     0
+    ]
+   }
+  ]
+ },
+ {
+  "File": "legacy-geometry.json",
+  "Path": "*/bones/horn/cubes/0/uv/*/uv_size",
+  "Values": []
+ },
+ {
+  "File": "legacy-geometry.json",
+  "Path": "nope/bones",
+  "Values": []
+ },
+ {
+  "File": "legacy-geometry.json",
+  "Path": "*/bones/99",
+  "Values": []
+ },
+ {
+  "File": "legacy-geometry.json",
+  "Path": "/ */description/texture_width /",
+  "Values": []
+ },
+ {
+  "File": "legacy-geometry.json",
+  "Path": "*/BONES/body/cubes/-2/inflate",
+  "Values": []
+ },
+ {
+  "File": "persona-geometry.json",
+  "Path": "",
+  "Values": [
+   {
+    "Path": "geometry.persona",
+    "Value": {
+     "bones": [
+      {
+       "name": "root"
+      },
+      {
+       "name": "body",
+       "parent": "root",
+       "pivot": [
+        0,
+        24,
+        0
+       ]
+      },
+      {
+       "name": "head",
+       "parent": "body",
+       "pivot": [
+        0,
+        24,
+        0
+       ]
+      }
+     ],
+     "description": {
+      "identifier": "geometry.persona"
+     }
+    }
+   }
+  ]
+ },
+ {
+  "File": "persona-geometry.json",
+  "Path": "*",
+  "Values": [
+   {
+    "Path": "geometry.persona",
+    "Value": {
+     "bones": [
+      {
+       "name": "root"
+      },
+      {
+       "name": "body",
+       "parent": "root",
+       "pivot": [
+        0,
+        24,
+        0
+       ]
+      },
+      {
+       "name": "head",
+       "parent": "body",
+       "pivot": [
+        0,
+        24,
+        0
+       ]
+      }
+     ],
+     "description": {
+      "identifier": "geometry.persona"
+     }
+    }
+   }
+  ]
+ },
+ {
+  "File": "persona-geometry.json",
+  "Path": "geometry.parity.custom/bones/rightArm/pivot",
+  "Values": []
+ },
+ {
+  "File": "persona-geometry.json",
+  "Path": "*/bones/*/cubes/*/size",
+  "Values": []
+ },
+ {
+  "File": "persona-geometry.json",
+  "Path": "*/bones/-1/name",
+  "Values": [
+   {
+    "Path": "geometry.persona/bones/head/name",
+    "Value": "head"
+   }
+  ]
+ },
+ {
+  "File": "persona-geometry.json",
+  "Path": "*/description",
+  "Values": [
+   {
+    "Path": "geometry.persona/description",
+    "Value": {
+     "identifier": "geometry.persona"
+    }
+   }
+  ]
+ },
+ {
+  "File": "persona-geometry.json",
+  "Path": "*/bones/HEAD/rotation",
+  "Values": []
+ },
+ {
+  "File": "persona-geometry.json",
+  "Path": "geometry.zeta",
+  "Values": []
+ },
+ {
+  "File": "persona-geometry.json",
+  "Path": "geometry.zeta/bones/0/cubes/0/uv",
+  "Values": []
+ },
+ {
+  "File": "persona-geometry.json",
+  "Path": "*/bones/head/locators/*",
+  "Values": []
+ },
+ {
+  "File": "persona-geometry.json",
+  "Path": "*/bones/horn/cubes/0/uv/*/uv_size",
+  "Values": []
+ },
+ {
+  "File": "persona-geometry.json",
+  "Path": "nope/bones",
+  "Values": []
+ },
+ {
+  "File": "persona-geometry.json",
+  "Path": "*/bones/99",
+  "Values": []
+ },
+ {
+  "File": "persona-geometry.json",
+  "Path": "/ */description/texture_width /",
+  "Values": []
+ },
+ {
+  "File": "persona-geometry.json",
+  "Path": "*/BONES/body/cubes/-2/inflate",
+  "Values": []
+ }
+]

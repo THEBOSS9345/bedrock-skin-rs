@@ -1,0 +1,4 @@
+# Keep line endings stable across platforms.
+* text=auto eol=lf
+*.png binary
+*.gif binary

@@ -1,0 +1,25 @@
+[package]
+name = "bedrock-skin"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.85"
+description = "Render Minecraft Bedrock skins to PNG and GIF: 3D models, capes, custom geometry, persona skins, Blockbench animations and invisible-skin detection"
+license = "Unlicense"
+repository = "https://github.com/THEBOSS9345/bedrock-skin-rs"
+documentation = "https://docs.rs/bedrock-skin"
+readme = "README.md"
+keywords = ["minecraft", "bedrock", "skin", "render", "mcpe"]
+categories = ["rendering", "graphics", "game-development", "multimedia::images"]
+# The parity fixtures and the Go tool that writes them are for this
+# repository's tests, not for the published crate.
+exclude = ["testdata/", "tools/", "docs/images/", ".github/"]
+
+[dependencies]
+gif = "0.13"
+image = { version = "0.25", default-features = false, features = ["png", "jpeg"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["float_roundtrip", "preserve_order"] }
+
+[[bench]]
+name = "render"
+harness = false
