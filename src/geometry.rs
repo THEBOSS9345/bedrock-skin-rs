@@ -29,8 +29,8 @@ pub struct Bone {
     pub cubes: Vec<Cube>,
 
     /// The rest of the schema, kept so a whole file can be read. The
-    /// renderer draws cubes only: poly meshes and texture meshes are parsed
-    /// but not drawn. See docs/geometry-format.md#everything-else-in-a-bone.
+    /// poly mesh is drawn (read it with [`Bone::mesh`]); texture meshes are
+    /// parsed but not drawn. See docs/geometry-format.md#everything-else-in-a-bone.
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub bind_pose_rotation: Vec<f64>,
     #[serde(skip_serializing_if = "BTreeMap::is_empty")]
@@ -255,9 +255,8 @@ impl Geometry {
             .find_map(|b| b.locators.get(name).map(|l| (l, b)))
     }
 
-    /// The number of cubes across every bone. Zero means the entry carries
-    /// no mesh at all, which is exactly what a persona skin looks like: real
-    /// bones, no cubes.
+    /// The number of cubes across every bone. A persona skin has none - its
+    /// mesh is poly meshes; [`Geometry::has_mesh`] counts both.
     pub fn total_cubes(&self) -> usize {
         self.bones.iter().map(|b| b.cubes.len()).sum()
     }

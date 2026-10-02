@@ -238,7 +238,7 @@
      "name": "head",
      "visibility": "visible",
      "opaque_ratio": 1,
-     "pixels": 1536,
+     "pixels": 384,
      "transparent_pixels": 0,
      "from_geometry": true
     },
@@ -246,31 +246,31 @@
      "name": "body",
      "visibility": "visible",
      "opaque_ratio": 1,
-     "pixels": 2816,
+     "pixels": 704,
      "transparent_pixels": 0,
      "from_geometry": true
     },
     {
      "name": "rightArm",
      "visibility": "visible",
-     "opaque_ratio": 0.5,
-     "pixels": 896,
-     "transparent_pixels": 448,
+     "opaque_ratio": 1,
+     "pixels": 224,
+     "transparent_pixels": 0,
      "from_geometry": true
     },
     {
      "name": "leftArm",
      "visibility": "visible",
-     "opaque_ratio": 0.5,
-     "pixels": 896,
-     "transparent_pixels": 448,
+     "opaque_ratio": 1,
+     "pixels": 224,
+     "transparent_pixels": 0,
      "from_geometry": true
     },
     {
      "name": "rightLeg",
      "visibility": "visible",
      "opaque_ratio": 1,
-     "pixels": 896,
+     "pixels": 224,
      "transparent_pixels": 0,
      "from_geometry": true
     },
@@ -278,15 +278,15 @@
      "name": "leftLeg",
      "visibility": "visible",
      "opaque_ratio": 1,
-     "pixels": 896,
+     "pixels": 224,
      "transparent_pixels": 0,
      "from_geometry": true
     },
     {
      "name": "horn",
-     "visibility": "invisible",
-     "opaque_ratio": 0,
-     "pixels": 0,
+     "visibility": "visible",
+     "opaque_ratio": 1,
+     "pixels": 52,
      "transparent_pixels": 0,
      "from_geometry": true
     },
@@ -300,10 +300,10 @@
     },
     {
      "name": "tail",
-     "visibility": "invisible",
-     "opaque_ratio": 0,
-     "pixels": 0,
-     "transparent_pixels": 0,
+     "visibility": "visible",
+     "opaque_ratio": 0.9411764705882353,
+     "pixels": 34,
+     "transparent_pixels": 2,
      "from_geometry": true
     }
    ]
@@ -317,7 +317,7 @@
      "Name": "head",
      "Visible": true,
      "Fraction": 1,
-     "Pixels": 1536,
+     "Pixels": 384,
      "Transparent": 0,
      "FromGeo": true,
      "Tiny": false
@@ -326,7 +326,7 @@
      "Name": "body",
      "Visible": true,
      "Fraction": 1,
-     "Pixels": 2816,
+     "Pixels": 704,
      "Transparent": 0,
      "FromGeo": true,
      "Tiny": false
@@ -334,18 +334,18 @@
     {
      "Name": "rightArm",
      "Visible": true,
-     "Fraction": 0.5,
-     "Pixels": 896,
-     "Transparent": 448,
+     "Fraction": 1,
+     "Pixels": 224,
+     "Transparent": 0,
      "FromGeo": true,
      "Tiny": false
     },
     {
      "Name": "leftArm",
      "Visible": true,
-     "Fraction": 0.5,
-     "Pixels": 896,
-     "Transparent": 448,
+     "Fraction": 1,
+     "Pixels": 224,
+     "Transparent": 0,
      "FromGeo": true,
      "Tiny": false
     },
@@ -353,7 +353,7 @@
      "Name": "rightLeg",
      "Visible": true,
      "Fraction": 1,
-     "Pixels": 896,
+     "Pixels": 224,
      "Transparent": 0,
      "FromGeo": true,
      "Tiny": false
@@ -362,16 +362,16 @@
      "Name": "leftLeg",
      "Visible": true,
      "Fraction": 1,
-     "Pixels": 896,
+     "Pixels": 224,
      "Transparent": 0,
      "FromGeo": true,
      "Tiny": false
     },
     {
      "Name": "horn",
-     "Visible": false,
-     "Fraction": 0,
-     "Pixels": 0,
+     "Visible": true,
+     "Fraction": 1,
+     "Pixels": 52,
      "Transparent": 0,
      "FromGeo": true,
      "Tiny": false
@@ -387,10 +387,10 @@
     },
     {
      "Name": "tail",
-     "Visible": false,
-     "Fraction": 0,
-     "Pixels": 0,
-     "Transparent": 0,
+     "Visible": true,
+     "Fraction": 0.9411764705882353,
+     "Pixels": 34,
+     "Transparent": 2,
      "FromGeo": true,
      "Tiny": false
     }
@@ -412,49 +412,49 @@
   "IsTiny": true,
   "InvisibleList": []
  },
- "custom": {
+ "companion": {
   "Report": {
    "verdict": "ok",
-   "visible_parts": 6,
+   "visible_parts": 5,
    "total_parts": 6,
    "parts": [
     {
      "name": "head",
-     "visibility": "visible",
-     "opaque_ratio": 1,
-     "pixels": 1536,
-     "transparent_pixels": 0,
+     "visibility": "suspicious",
+     "opaque_ratio": 0.16666666666666666,
+     "pixels": 384,
+     "transparent_pixels": 320,
      "from_geometry": true
     },
     {
      "name": "body",
      "visibility": "visible",
      "opaque_ratio": 1,
-     "pixels": 2816,
+     "pixels": 0,
      "transparent_pixels": 0,
      "from_geometry": true
     },
     {
      "name": "rightArm",
      "visibility": "visible",
-     "opaque_ratio": 0.5,
-     "pixels": 896,
-     "transparent_pixels": 448,
+     "opaque_ratio": 1,
+     "pixels": 0,
+     "transparent_pixels": 0,
      "from_geometry": true
     },
     {
      "name": "leftArm",
      "visibility": "visible",
-     "opaque_ratio": 0.5,
-     "pixels": 896,
-     "transparent_pixels": 448,
+     "opaque_ratio": 1,
+     "pixels": 0,
+     "transparent_pixels": 0,
      "from_geometry": true
     },
     {
      "name": "rightLeg",
      "visibility": "visible",
      "opaque_ratio": 1,
-     "pixels": 896,
+     "pixels": 0,
      "transparent_pixels": 0,
      "from_geometry": true
     },
@@ -462,30 +462,6 @@
      "name": "leftLeg",
      "visibility": "visible",
      "opaque_ratio": 1,
-     "pixels": 896,
-     "transparent_pixels": 0,
-     "from_geometry": true
-    },
-    {
-     "name": "horn",
-     "visibility": "invisible",
-     "opaque_ratio": 0,
-     "pixels": 0,
-     "transparent_pixels": 0,
-     "from_geometry": true
-    },
-    {
-     "name": "speck",
-     "visibility": "tiny",
-     "opaque_ratio": 0,
-     "pixels": 0,
-     "transparent_pixels": 0,
-     "from_geometry": true
-    },
-    {
-     "name": "tail",
-     "visibility": "invisible",
-     "opaque_ratio": 0,
      "pixels": 0,
      "transparent_pixels": 0,
      "from_geometry": true
@@ -499,10 +475,10 @@
    "Parts": [
     {
      "Name": "head",
-     "Visible": true,
-     "Fraction": 1,
-     "Pixels": 1536,
-     "Transparent": 0,
+     "Visible": false,
+     "Fraction": 0.16666666666666666,
+     "Pixels": 384,
+     "Transparent": 320,
      "FromGeo": true,
      "Tiny": false
     },
@@ -510,7 +486,7 @@
      "Name": "body",
      "Visible": true,
      "Fraction": 1,
-     "Pixels": 2816,
+     "Pixels": 0,
      "Transparent": 0,
      "FromGeo": true,
      "Tiny": false
@@ -518,18 +494,18 @@
     {
      "Name": "rightArm",
      "Visible": true,
-     "Fraction": 0.5,
-     "Pixels": 896,
-     "Transparent": 448,
+     "Fraction": 1,
+     "Pixels": 0,
+     "Transparent": 0,
      "FromGeo": true,
      "Tiny": false
     },
     {
      "Name": "leftArm",
      "Visible": true,
-     "Fraction": 0.5,
-     "Pixels": 896,
-     "Transparent": 448,
+     "Fraction": 1,
+     "Pixels": 0,
+     "Transparent": 0,
      "FromGeo": true,
      "Tiny": false
     },
@@ -537,7 +513,7 @@
      "Name": "rightLeg",
      "Visible": true,
      "Fraction": 1,
-     "Pixels": 896,
+     "Pixels": 0,
      "Transparent": 0,
      "FromGeo": true,
      "Tiny": false
@@ -546,16 +522,169 @@
      "Name": "leftLeg",
      "Visible": true,
      "Fraction": 1,
-     "Pixels": 896,
+     "Pixels": 0,
+     "Transparent": 0,
+     "FromGeo": true,
+     "Tiny": false
+    }
+   ],
+   "VisibleParts": 5,
+   "InvisibleParts": 1
+  },
+  "GeometrySize": {
+   "Pass": true,
+   "Violations": null
+  },
+  "IsInvisible": true,
+  "IsTiny": false,
+  "InvisibleList": [
+   "head"
+  ]
+ },
+ "custom": {
+  "Report": {
+   "verdict": "ok",
+   "visible_parts": 6,
+   "total_parts": 6,
+   "parts": [
+    {
+     "name": "head",
+     "visibility": "visible",
+     "opaque_ratio": 1,
+     "pixels": 384,
+     "transparent_pixels": 0,
+     "from_geometry": true
+    },
+    {
+     "name": "body",
+     "visibility": "visible",
+     "opaque_ratio": 1,
+     "pixels": 704,
+     "transparent_pixels": 0,
+     "from_geometry": true
+    },
+    {
+     "name": "rightArm",
+     "visibility": "visible",
+     "opaque_ratio": 1,
+     "pixels": 224,
+     "transparent_pixels": 0,
+     "from_geometry": true
+    },
+    {
+     "name": "leftArm",
+     "visibility": "visible",
+     "opaque_ratio": 1,
+     "pixels": 224,
+     "transparent_pixels": 0,
+     "from_geometry": true
+    },
+    {
+     "name": "rightLeg",
+     "visibility": "visible",
+     "opaque_ratio": 1,
+     "pixels": 224,
+     "transparent_pixels": 0,
+     "from_geometry": true
+    },
+    {
+     "name": "leftLeg",
+     "visibility": "visible",
+     "opaque_ratio": 1,
+     "pixels": 224,
+     "transparent_pixels": 0,
+     "from_geometry": true
+    },
+    {
+     "name": "horn",
+     "visibility": "visible",
+     "opaque_ratio": 1,
+     "pixels": 52,
+     "transparent_pixels": 0,
+     "from_geometry": true
+    },
+    {
+     "name": "speck",
+     "visibility": "tiny",
+     "opaque_ratio": 0,
+     "pixels": 0,
+     "transparent_pixels": 0,
+     "from_geometry": true
+    },
+    {
+     "name": "tail",
+     "visibility": "visible",
+     "opaque_ratio": 0.9411764705882353,
+     "pixels": 34,
+     "transparent_pixels": 2,
+     "from_geometry": true
+    }
+   ]
+  },
+  "Visibility": {
+   "IsInvisible": false,
+   "Pass": true,
+   "Suspicious": false,
+   "Parts": [
+    {
+     "Name": "head",
+     "Visible": true,
+     "Fraction": 1,
+     "Pixels": 384,
+     "Transparent": 0,
+     "FromGeo": true,
+     "Tiny": false
+    },
+    {
+     "Name": "body",
+     "Visible": true,
+     "Fraction": 1,
+     "Pixels": 704,
+     "Transparent": 0,
+     "FromGeo": true,
+     "Tiny": false
+    },
+    {
+     "Name": "rightArm",
+     "Visible": true,
+     "Fraction": 1,
+     "Pixels": 224,
+     "Transparent": 0,
+     "FromGeo": true,
+     "Tiny": false
+    },
+    {
+     "Name": "leftArm",
+     "Visible": true,
+     "Fraction": 1,
+     "Pixels": 224,
+     "Transparent": 0,
+     "FromGeo": true,
+     "Tiny": false
+    },
+    {
+     "Name": "rightLeg",
+     "Visible": true,
+     "Fraction": 1,
+     "Pixels": 224,
+     "Transparent": 0,
+     "FromGeo": true,
+     "Tiny": false
+    },
+    {
+     "Name": "leftLeg",
+     "Visible": true,
+     "Fraction": 1,
+     "Pixels": 224,
      "Transparent": 0,
      "FromGeo": true,
      "Tiny": false
     },
     {
      "Name": "horn",
-     "Visible": false,
-     "Fraction": 0,
-     "Pixels": 0,
+     "Visible": true,
+     "Fraction": 1,
+     "Pixels": 52,
      "Transparent": 0,
      "FromGeo": true,
      "Tiny": false
@@ -571,10 +700,10 @@
     },
     {
      "Name": "tail",
-     "Visible": false,
-     "Fraction": 0,
-     "Pixels": 0,
-     "Transparent": 0,
+     "Visible": true,
+     "Fraction": 0.9411764705882353,
+     "Pixels": 34,
+     "Transparent": 2,
      "FromGeo": true,
      "Tiny": false
     }
@@ -1063,6 +1192,463 @@
    "leftArm",
    "leftLeg"
   ]
+ },
+ "mesh": {
+  "Report": {
+   "verdict": "ok",
+   "visible_parts": 6,
+   "total_parts": 6,
+   "parts": [
+    {
+     "name": "body",
+     "visibility": "visible",
+     "opaque_ratio": 1,
+     "pixels": 352,
+     "transparent_pixels": 0,
+     "from_geometry": true
+    },
+    {
+     "name": "rightArm",
+     "visibility": "visible",
+     "opaque_ratio": 1,
+     "pixels": 224,
+     "transparent_pixels": 0,
+     "from_geometry": true
+    },
+    {
+     "name": "leftArm",
+     "visibility": "visible",
+     "opaque_ratio": 1,
+     "pixels": 224,
+     "transparent_pixels": 0,
+     "from_geometry": true
+    },
+    {
+     "name": "rightLeg",
+     "visibility": "visible",
+     "opaque_ratio": 1,
+     "pixels": 224,
+     "transparent_pixels": 0,
+     "from_geometry": true
+    },
+    {
+     "name": "leftLeg",
+     "visibility": "visible",
+     "opaque_ratio": 1,
+     "pixels": 224,
+     "transparent_pixels": 0,
+     "from_geometry": true
+    },
+    {
+     "name": "head",
+     "visibility": "visible",
+     "opaque_ratio": 1,
+     "pixels": 0,
+     "transparent_pixels": 0,
+     "from_geometry": true
+    }
+   ]
+  },
+  "Visibility": {
+   "IsInvisible": false,
+   "Pass": true,
+   "Suspicious": false,
+   "Parts": [
+    {
+     "Name": "body",
+     "Visible": true,
+     "Fraction": 1,
+     "Pixels": 352,
+     "Transparent": 0,
+     "FromGeo": true,
+     "Tiny": false
+    },
+    {
+     "Name": "rightArm",
+     "Visible": true,
+     "Fraction": 1,
+     "Pixels": 224,
+     "Transparent": 0,
+     "FromGeo": true,
+     "Tiny": false
+    },
+    {
+     "Name": "leftArm",
+     "Visible": true,
+     "Fraction": 1,
+     "Pixels": 224,
+     "Transparent": 0,
+     "FromGeo": true,
+     "Tiny": false
+    },
+    {
+     "Name": "rightLeg",
+     "Visible": true,
+     "Fraction": 1,
+     "Pixels": 224,
+     "Transparent": 0,
+     "FromGeo": true,
+     "Tiny": false
+    },
+    {
+     "Name": "leftLeg",
+     "Visible": true,
+     "Fraction": 1,
+     "Pixels": 224,
+     "Transparent": 0,
+     "FromGeo": true,
+     "Tiny": false
+    },
+    {
+     "Name": "head",
+     "Visible": true,
+     "Fraction": 1,
+     "Pixels": 0,
+     "Transparent": 0,
+     "FromGeo": true,
+     "Tiny": false
+    }
+   ],
+   "VisibleParts": 6,
+   "InvisibleParts": 0
+  },
+  "GeometrySize": {
+   "Pass": true,
+   "Violations": null
+  },
+  "IsInvisible": false,
+  "IsTiny": false,
+  "InvisibleList": []
+ },
+ "mesh-128": {
+  "Report": {
+   "verdict": "ok",
+   "visible_parts": 6,
+   "total_parts": 6,
+   "parts": [
+    {
+     "name": "body",
+     "visibility": "visible",
+     "opaque_ratio": 1,
+     "pixels": 1408,
+     "transparent_pixels": 0,
+     "from_geometry": true
+    },
+    {
+     "name": "rightArm",
+     "visibility": "visible",
+     "opaque_ratio": 0.5,
+     "pixels": 896,
+     "transparent_pixels": 448,
+     "from_geometry": true
+    },
+    {
+     "name": "leftArm",
+     "visibility": "visible",
+     "opaque_ratio": 1,
+     "pixels": 896,
+     "transparent_pixels": 0,
+     "from_geometry": true
+    },
+    {
+     "name": "rightLeg",
+     "visibility": "visible",
+     "opaque_ratio": 1,
+     "pixels": 896,
+     "transparent_pixels": 0,
+     "from_geometry": true
+    },
+    {
+     "name": "leftLeg",
+     "visibility": "visible",
+     "opaque_ratio": 1,
+     "pixels": 896,
+     "transparent_pixels": 0,
+     "from_geometry": true
+    },
+    {
+     "name": "head",
+     "visibility": "visible",
+     "opaque_ratio": 1,
+     "pixels": 0,
+     "transparent_pixels": 0,
+     "from_geometry": true
+    }
+   ]
+  },
+  "Visibility": {
+   "IsInvisible": false,
+   "Pass": true,
+   "Suspicious": false,
+   "Parts": [
+    {
+     "Name": "body",
+     "Visible": true,
+     "Fraction": 1,
+     "Pixels": 1408,
+     "Transparent": 0,
+     "FromGeo": true,
+     "Tiny": false
+    },
+    {
+     "Name": "rightArm",
+     "Visible": true,
+     "Fraction": 0.5,
+     "Pixels": 896,
+     "Transparent": 448,
+     "FromGeo": true,
+     "Tiny": false
+    },
+    {
+     "Name": "leftArm",
+     "Visible": true,
+     "Fraction": 1,
+     "Pixels": 896,
+     "Transparent": 0,
+     "FromGeo": true,
+     "Tiny": false
+    },
+    {
+     "Name": "rightLeg",
+     "Visible": true,
+     "Fraction": 1,
+     "Pixels": 896,
+     "Transparent": 0,
+     "FromGeo": true,
+     "Tiny": false
+    },
+    {
+     "Name": "leftLeg",
+     "Visible": true,
+     "Fraction": 1,
+     "Pixels": 896,
+     "Transparent": 0,
+     "FromGeo": true,
+     "Tiny": false
+    },
+    {
+     "Name": "head",
+     "Visible": true,
+     "Fraction": 1,
+     "Pixels": 0,
+     "Transparent": 0,
+     "FromGeo": true,
+     "Tiny": false
+    }
+   ],
+   "VisibleParts": 6,
+   "InvisibleParts": 0
+  },
+  "GeometrySize": {
+   "Pass": true,
+   "Violations": null
+  },
+  "IsInvisible": false,
+  "IsTiny": false,
+  "InvisibleList": []
+ },
+ "mesh-odd": {
+  "Report": {
+   "verdict": "suspicious",
+   "visible_parts": 3,
+   "total_parts": 6,
+   "parts": [
+    {
+     "name": "head",
+     "visibility": "visible",
+     "opaque_ratio": 0.9981060606060606,
+     "pixels": 528,
+     "transparent_pixels": 1,
+     "from_geometry": true
+    },
+    {
+     "name": "body",
+     "visibility": "visible",
+     "opaque_ratio": 0.9910714285714286,
+     "pixels": 224,
+     "transparent_pixels": 2,
+     "from_geometry": true
+    },
+    {
+     "name": "leftArm",
+     "visibility": "visible",
+     "opaque_ratio": 0.9895833333333334,
+     "pixels": 96,
+     "transparent_pixels": 1,
+     "from_geometry": true
+    }
+   ]
+  },
+  "Visibility": {
+   "IsInvisible": false,
+   "Pass": true,
+   "Suspicious": true,
+   "Parts": [
+    {
+     "Name": "head",
+     "Visible": true,
+     "Fraction": 0.9981060606060606,
+     "Pixels": 528,
+     "Transparent": 1,
+     "FromGeo": true,
+     "Tiny": false
+    },
+    {
+     "Name": "body",
+     "Visible": true,
+     "Fraction": 0.9910714285714286,
+     "Pixels": 224,
+     "Transparent": 2,
+     "FromGeo": true,
+     "Tiny": false
+    },
+    {
+     "Name": "leftArm",
+     "Visible": true,
+     "Fraction": 0.9895833333333334,
+     "Pixels": 96,
+     "Transparent": 1,
+     "FromGeo": true,
+     "Tiny": false
+    }
+   ],
+   "VisibleParts": 3,
+   "InvisibleParts": 3
+  },
+  "GeometrySize": {
+   "Pass": true,
+   "Violations": null
+  },
+  "IsInvisible": false,
+  "IsTiny": false,
+  "InvisibleList": []
+ },
+ "mesh-semi": {
+  "Report": {
+   "verdict": "ok",
+   "visible_parts": 6,
+   "total_parts": 6,
+   "parts": [
+    {
+     "name": "body",
+     "visibility": "visible",
+     "opaque_ratio": 0.9943181818181818,
+     "pixels": 352,
+     "transparent_pixels": 2,
+     "from_geometry": true
+    },
+    {
+     "name": "rightArm",
+     "visibility": "visible",
+     "opaque_ratio": 0.9955357142857143,
+     "pixels": 224,
+     "transparent_pixels": 1,
+     "from_geometry": true
+    },
+    {
+     "name": "leftArm",
+     "visibility": "visible",
+     "opaque_ratio": 0.9910714285714286,
+     "pixels": 224,
+     "transparent_pixels": 2,
+     "from_geometry": true
+    },
+    {
+     "name": "rightLeg",
+     "visibility": "visible",
+     "opaque_ratio": 0.9955357142857143,
+     "pixels": 224,
+     "transparent_pixels": 1,
+     "from_geometry": true
+    },
+    {
+     "name": "leftLeg",
+     "visibility": "visible",
+     "opaque_ratio": 1,
+     "pixels": 224,
+     "transparent_pixels": 0,
+     "from_geometry": true
+    },
+    {
+     "name": "head",
+     "visibility": "visible",
+     "opaque_ratio": 1,
+     "pixels": 0,
+     "transparent_pixels": 0,
+     "from_geometry": true
+    }
+   ]
+  },
+  "Visibility": {
+   "IsInvisible": false,
+   "Pass": true,
+   "Suspicious": false,
+   "Parts": [
+    {
+     "Name": "body",
+     "Visible": true,
+     "Fraction": 0.9943181818181818,
+     "Pixels": 352,
+     "Transparent": 2,
+     "FromGeo": true,
+     "Tiny": false
+    },
+    {
+     "Name": "rightArm",
+     "Visible": true,
+     "Fraction": 0.9955357142857143,
+     "Pixels": 224,
+     "Transparent": 1,
+     "FromGeo": true,
+     "Tiny": false
+    },
+    {
+     "Name": "leftArm",
+     "Visible": true,
+     "Fraction": 0.9910714285714286,
+     "Pixels": 224,
+     "Transparent": 2,
+     "FromGeo": true,
+     "Tiny": false
+    },
+    {
+     "Name": "rightLeg",
+     "Visible": true,
+     "Fraction": 0.9955357142857143,
+     "Pixels": 224,
+     "Transparent": 1,
+     "FromGeo": true,
+     "Tiny": false
+    },
+    {
+     "Name": "leftLeg",
+     "Visible": true,
+     "Fraction": 1,
+     "Pixels": 224,
+     "Transparent": 0,
+     "FromGeo": true,
+     "Tiny": false
+    },
+    {
+     "Name": "head",
+     "Visible": true,
+     "Fraction": 1,
+     "Pixels": 0,
+     "Transparent": 0,
+     "FromGeo": true,
+     "Tiny": false
+    }
+   ],
+   "VisibleParts": 6,
+   "InvisibleParts": 0
+  },
+  "GeometrySize": {
+   "Pass": true,
+   "Violations": null
+  },
+  "IsInvisible": false,
+  "IsTiny": false,
+  "InvisibleList": []
  },
  "persona": {
   "Report": {

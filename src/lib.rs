@@ -57,6 +57,7 @@ mod invisible;
 mod jsonread;
 mod mesh;
 mod molang;
+mod polymesh;
 mod raster;
 mod render;
 mod render2d;
@@ -82,8 +83,10 @@ pub use invisible::{
     SkinVisibilityResult, is_skin_invisible, is_skin_tiny, validate_geometry_size,
     validate_skin_invisibility, validate_skin_visibility,
 };
+pub use polymesh::PolyMesh;
 pub use render::{
-    Angle, Camera, DEFAULT_SIZE, RenderOptions, View, parse_angle, parse_parts, parse_view, render,
+    Angle, AnimatedTexture, AnimatedType, Camera, DEFAULT_SIZE, RenderOptions, View, parse_angle,
+    parse_parts, parse_view, render,
 };
 pub use render2d::render_2d;
 

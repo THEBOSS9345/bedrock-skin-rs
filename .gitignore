@@ -1,3 +1,10 @@
 /target
 *.exe
 *.pdb
+
+# Local data files are never committed.
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3

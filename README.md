@@ -101,7 +101,16 @@ let sizes = tree.select("*/bones/*/cubes/*/size");                       // ever
 
 ## Persona skins
 
-Persona (character creator) skins have bones but no cubes - Bedrock never sends their mesh - so there is nothing to rasterize. Rendering notices and falls back to a flat crop of the texture, as the client does; `render_2d` is that path on its own.
+Persona (character creator) skins are built from poly meshes instead of cubes, and render in 3D like any other model. Their parts are spread over several geometry entries, and the head is textured by the skin's face animation rather than the skin image - add the animation images to draw it:
+
+```rust
+let img = RenderOptions::new(&tex)
+    .geometry(&geos)
+    .animated(AnimatedType::Face, &face)
+    .render()?;
+```
+
+Without them the body renders and the head view returns `Error::EmptyView`. See [docs/geometry-format.md](docs/geometry-format.md#persona-skins).
 
 ## Detecting invisible skins
 

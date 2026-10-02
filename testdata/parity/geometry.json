@@ -529,6 +529,609 @@
   "Patch": null
  },
  {
+  "Input": "{\"format_version\":\"1.12.0\",\"minecraft:geometry\":[{\"description\":{\"identifier\":\"geometry.odd_mesh\",\"texture_width\":64,\"texture_height\":64},\"bones\":[{\"name\":\"root\",\"pivot\":[0,0,0]},{\"name\":\"Body\",\"parent\":\"root\",\"pivot\":[0,24,0],\"rotation\":[0,15,0],\"poly_mesh\":{\"positions\":[[-4,12,-2],[4,12,-2],[4,24,-2],[-4,24,-2],[-4,24,2],[4,24,2]],\"uvs\":[[20,32],[28,32],[28,20],[20,20],[20,16],[28,16]],\"normals\":[[0,0,-1]],\"polys\":[[[0,0,0],[1,0,1],[2,0,2],[3,0,3]],[[3,0,3],[2,0,2],[5,0,5],[4,0,4]],[[0,0,0],[1,0,1]],[[0,0,0],[1,0,1],[9,0,9]],[[0,0,0],[1,0,1],[2,0,2],[3,0,3],[0,0,0]]]}},{\"name\":\"HEAD\",\"parent\":\"Body\",\"pivot\":[0,24,0],\"cubes\":[{\"origin\":[-4,24,-4],\"size\":[8,8,8],\"uv\":[0,0]}],\"poly_mesh\":{\"normalized_uvs\":true,\"positions\":[[-5,33,-5],[5,33,-5],[0,38,0],[5,33,5],[-5,33,5],[0,38,0]],\"uvs\":[[0.5,1],[0.75,1],[0.625,0.875],[0.5,0.875],[0.75,0.875],[0.625,0.75]],\"normals\":[[0,1,0]],\"polys\":\"tri_list\"}},{\"name\":\"leftArm\",\"parent\":\"Body\",\"pivot\":[5,22,0],\"poly_mesh\":{\"positions\":[[4,12,-2],[8,12,-2],[8,24,-2],[4,24,-2],[4,12,2],[8,12,2],[8,24,2],[4,24,2]],\"uvs\":[[36,64],[40,64],[40,52],[36,52],[44,64],[48,64],[48,52],[44,52]],\"polys\":\"quad_list\"}},{\"name\":\"rightarm\",\"parent\":\"Body\",\"pivot\":[-5,22,0],\"poly_mesh\":null},{\"name\":\"rightLeg\",\"parent\":\"root\",\"pivot\":[-1.9,12,0],\"poly_mesh\":[1,2,3]},{\"name\":\"leftLeg\",\"parent\":\"root\",\"pivot\":[1.9,12,0],\"poly_mesh\":{\"positions\":[[0,0,-2],null,[4,12,-2]],\"uvs\":[[20,64],[24,64],[24,52]],\"polys\":[[[0,0,0],[1,0,1],[2,0,2]]]}},{\"name\":\"tail\",\"parent\":\"root\",\"pivot\":[0,12,0],\"poly_mesh\":{\"positions\":[[0,12,2],[0,6,8],[1,12,2]],\"uvs\":[[0,0],[1,1]],\"polys\":[[[0,0,0],[1,0,1],[2,0,1.5]]]}},{\"name\":\"wing\",\"parent\":\"Body\",\"pivot\":[0,24,0],\"poly_mesh\":{\"positions\":\"bad\",\"polys\":[[[0,0,0]]]}},{\"name\":\"halo\",\"parent\":\"HEAD\",\"pivot\":[0,24,0],\"poly_mesh\":{\"positions\":[[-3,36,-3],[3,36,-3],[3,36,3],[-3,36,3]],\"uvs\":[[40,0],[48,0],[48,8],[40,8]],\"polys\":\"fan\"}}]}]}",
+  "Error": false,
+  "Geometries": [
+   {
+    "Identifier": "geometry.odd_mesh",
+    "TextureWidth": 64,
+    "TextureHeight": 64,
+    "Bones": [
+     {
+      "name": "root",
+      "pivot": [
+       0,
+       0,
+       0
+      ]
+     },
+     {
+      "name": "Body",
+      "parent": "root",
+      "pivot": [
+       0,
+       24,
+       0
+      ],
+      "rotation": [
+       0,
+       15,
+       0
+      ],
+      "poly_mesh": {
+       "positions": [
+        [
+         -4,
+         12,
+         -2
+        ],
+        [
+         4,
+         12,
+         -2
+        ],
+        [
+         4,
+         24,
+         -2
+        ],
+        [
+         -4,
+         24,
+         -2
+        ],
+        [
+         -4,
+         24,
+         2
+        ],
+        [
+         4,
+         24,
+         2
+        ]
+       ],
+       "uvs": [
+        [
+         20,
+         32
+        ],
+        [
+         28,
+         32
+        ],
+        [
+         28,
+         20
+        ],
+        [
+         20,
+         20
+        ],
+        [
+         20,
+         16
+        ],
+        [
+         28,
+         16
+        ]
+       ],
+       "normals": [
+        [
+         0,
+         0,
+         -1
+        ]
+       ],
+       "polys": [
+        [
+         [
+          0,
+          0,
+          0
+         ],
+         [
+          1,
+          0,
+          1
+         ],
+         [
+          2,
+          0,
+          2
+         ],
+         [
+          3,
+          0,
+          3
+         ]
+        ],
+        [
+         [
+          3,
+          0,
+          3
+         ],
+         [
+          2,
+          0,
+          2
+         ],
+         [
+          5,
+          0,
+          5
+         ],
+         [
+          4,
+          0,
+          4
+         ]
+        ],
+        [
+         [
+          0,
+          0,
+          0
+         ],
+         [
+          1,
+          0,
+          1
+         ]
+        ],
+        [
+         [
+          0,
+          0,
+          0
+         ],
+         [
+          1,
+          0,
+          1
+         ],
+         [
+          9,
+          0,
+          9
+         ]
+        ],
+        [
+         [
+          0,
+          0,
+          0
+         ],
+         [
+          1,
+          0,
+          1
+         ],
+         [
+          2,
+          0,
+          2
+         ],
+         [
+          3,
+          0,
+          3
+         ],
+         [
+          0,
+          0,
+          0
+         ]
+        ]
+       ]
+      }
+     },
+     {
+      "name": "HEAD",
+      "parent": "Body",
+      "pivot": [
+       0,
+       24,
+       0
+      ],
+      "cubes": [
+       {
+        "origin": [
+         -4,
+         24,
+         -4
+        ],
+        "size": [
+         8,
+         8,
+         8
+        ],
+        "uv": [
+         0,
+         0
+        ]
+       }
+      ],
+      "poly_mesh": {
+       "normalized_uvs": true,
+       "positions": [
+        [
+         -5,
+         33,
+         -5
+        ],
+        [
+         5,
+         33,
+         -5
+        ],
+        [
+         0,
+         38,
+         0
+        ],
+        [
+         5,
+         33,
+         5
+        ],
+        [
+         -5,
+         33,
+         5
+        ],
+        [
+         0,
+         38,
+         0
+        ]
+       ],
+       "uvs": [
+        [
+         0.5,
+         1
+        ],
+        [
+         0.75,
+         1
+        ],
+        [
+         0.625,
+         0.875
+        ],
+        [
+         0.5,
+         0.875
+        ],
+        [
+         0.75,
+         0.875
+        ],
+        [
+         0.625,
+         0.75
+        ]
+       ],
+       "normals": [
+        [
+         0,
+         1,
+         0
+        ]
+       ],
+       "polys": "tri_list"
+      }
+     },
+     {
+      "name": "leftArm",
+      "parent": "Body",
+      "pivot": [
+       5,
+       22,
+       0
+      ],
+      "poly_mesh": {
+       "positions": [
+        [
+         4,
+         12,
+         -2
+        ],
+        [
+         8,
+         12,
+         -2
+        ],
+        [
+         8,
+         24,
+         -2
+        ],
+        [
+         4,
+         24,
+         -2
+        ],
+        [
+         4,
+         12,
+         2
+        ],
+        [
+         8,
+         12,
+         2
+        ],
+        [
+         8,
+         24,
+         2
+        ],
+        [
+         4,
+         24,
+         2
+        ]
+       ],
+       "uvs": [
+        [
+         36,
+         64
+        ],
+        [
+         40,
+         64
+        ],
+        [
+         40,
+         52
+        ],
+        [
+         36,
+         52
+        ],
+        [
+         44,
+         64
+        ],
+        [
+         48,
+         64
+        ],
+        [
+         48,
+         52
+        ],
+        [
+         44,
+         52
+        ]
+       ],
+       "polys": "quad_list"
+      }
+     },
+     {
+      "name": "rightarm",
+      "parent": "Body",
+      "pivot": [
+       -5,
+       22,
+       0
+      ],
+      "poly_mesh": null
+     },
+     {
+      "name": "rightLeg",
+      "parent": "root",
+      "pivot": [
+       -1.9,
+       12,
+       0
+      ],
+      "poly_mesh": [
+       1,
+       2,
+       3
+      ]
+     },
+     {
+      "name": "leftLeg",
+      "parent": "root",
+      "pivot": [
+       1.9,
+       12,
+       0
+      ],
+      "poly_mesh": {
+       "positions": [
+        [
+         0,
+         0,
+         -2
+        ],
+        null,
+        [
+         4,
+         12,
+         -2
+        ]
+       ],
+       "uvs": [
+        [
+         20,
+         64
+        ],
+        [
+         24,
+         64
+        ],
+        [
+         24,
+         52
+        ]
+       ],
+       "polys": [
+        [
+         [
+          0,
+          0,
+          0
+         ],
+         [
+          1,
+          0,
+          1
+         ],
+         [
+          2,
+          0,
+          2
+         ]
+        ]
+       ]
+      }
+     },
+     {
+      "name": "tail",
+      "parent": "root",
+      "pivot": [
+       0,
+       12,
+       0
+      ],
+      "poly_mesh": {
+       "positions": [
+        [
+         0,
+         12,
+         2
+        ],
+        [
+         0,
+         6,
+         8
+        ],
+        [
+         1,
+         12,
+         2
+        ]
+       ],
+       "uvs": [
+        [
+         0,
+         0
+        ],
+        [
+         1,
+         1
+        ]
+       ],
+       "polys": [
+        [
+         [
+          0,
+          0,
+          0
+         ],
+         [
+          1,
+          0,
+          1
+         ],
+         [
+          2,
+          0,
+          1.5
+         ]
+        ]
+       ]
+      }
+     },
+     {
+      "name": "wing",
+      "parent": "Body",
+      "pivot": [
+       0,
+       24,
+       0
+      ],
+      "poly_mesh": {
+       "positions": "bad",
+       "polys": [
+        [
+         [
+          0,
+          0,
+          0
+         ]
+        ]
+       ]
+      }
+     },
+     {
+      "name": "halo",
+      "parent": "HEAD",
+      "pivot": [
+       0,
+       24,
+       0
+      ],
+      "poly_mesh": {
+       "positions": [
+        [
+         -3,
+         36,
+         -3
+        ],
+        [
+         3,
+         36,
+         -3
+        ],
+        [
+         3,
+         36,
+         3
+        ],
+        [
+         -3,
+         36,
+         3
+        ]
+       ],
+       "uvs": [
+        [
+         40,
+         0
+        ],
+        [
+         48,
+         0
+        ],
+        [
+         48,
+         8
+        ],
+        [
+         40,
+         8
+        ]
+       ],
+       "polys": "fan"
+      }
+     }
+    ],
+    "VisibleBoundsWidth": 0,
+    "VisibleBoundsHeight": 0,
+    "VisibleBoundsOffset": null
+   }
+  ],
+  "Patch": null
+ },
+ {
   "Input": "{\n  \"format_version\": \"1.12.0\",\n  \"minecraft:geometry\": [\n    {\n      \"bones\": [\n        {\n          \"name\": \"body\",\n          \"parent\": \"waist\",\n          \"pivot\": [\n            0.0,\n            24.0,\n            0.0\n          ]\n        },\n        {\n          \"name\": \"waist\",\n          \"pivot\": [\n            0.0,\n            12.0,\n            0.0\n          ]\n        },\n        {\n          \"cubes\": [\n            {\n              \"origin\": [\n                -5.0,\n                8.0,\n                3.0\n              ],\n              \"size\": [\n                10,\n                16,\n                1\n              ],\n              \"uv\": [\n                0,\n                0\n              ]\n            }\n          ],\n          \"name\": \"cape\",\n          \"parent\": \"body\",\n          \"pivot\": [\n            0.0,\n            24.0,\n            3.0\n          ],\n          \"rotation\": [\n            0.0,\n            180.0,\n            0.0\n          ]\n        }\n      ],\n      \"description\": {\n        \"identifier\": \"geometry.cape\",\n        \"texture_height\": 32,\n        \"texture_width\": 64\n      }\n    },\n    {\n      \"bones\": [\n        {\n          \"name\": \"root\",\n          \"pivot\": [\n            0.0,\n            0.0,\n            0.0\n          ]\n        },\n        {\n          \"cubes\": [\n            {\n              \"origin\": [\n                -4.0,\n                12.0,\n                -2.0\n              ],\n              \"size\": [\n                8,\n                12,\n                4\n              ],\n              \"uv\": [\n                16,\n                16\n              ]\n            }\n          ],\n          \"name\": \"body\",\n          \"parent\": \"waist\",\n          \"pivot\": [\n            0.0,\n            24.0,\n            0.0\n          ]\n        },\n        {\n          \"name\": \"waist\",\n          \"parent\": \"root\",\n          \"pivot\": [\n            0.0,\n            12.0,\n            0.0\n          ]\n        },\n        {\n          \"cubes\": [\n            {\n              \"origin\": [\n                -4.0,\n                24.0,\n                -4.0\n              ],\n              \"size\": [\n                8,\n                8,\n                8\n              ],\n              \"uv\": [\n                0,\n                0\n              ]\n            }\n          ],\n          \"name\": \"head\",\n          \"parent\": \"body\",\n          \"pivot\": [\n            0.0,\n            24.0,\n            0.0\n          ]\n        },\n        {\n          \"name\": \"cape\",\n          \"parent\": \"body\",\n          \"pivot\": [\n            0.0,\n            24,\n            3.0\n          ]\n        },\n        {\n          \"cubes\": [\n            {\n              \"inflate\": 0.50,\n              \"origin\": [\n                -4.0,\n                24.0,\n                -4.0\n              ],\n              \"size\": [\n                8,\n                8,\n                8\n              ],\n              \"uv\": [\n                32,\n                0\n              ]\n            }\n          ],\n          \"name\": \"hat\",\n          \"parent\": \"head\",\n          \"pivot\": [\n            0.0,\n            24.0,\n            0.0\n          ]\n        },\n        {\n          \"cubes\": [\n            {\n              \"origin\": [\n                4.0,\n                12.0,\n                -2.0\n              ],\n              \"size\": [\n                4,\n                12,\n                4\n              ],\n              \"uv\": [\n                32,\n                48\n              ]\n            }\n          ],\n          \"name\": \"leftArm\",\n          \"parent\": \"body\",\n          \"pivot\": [\n            5.0,\n            22.0,\n            0.0\n          ]\n        },\n        {\n          \"cubes\": [\n            {\n              \"inflate\": 0.250,\n              \"origin\": [\n                4.0,\n                12.0,\n                -2.0\n              ],\n              \"size\": [\n                4,\n                12,\n                4\n              ],\n              \"uv\": [\n                48,\n                48\n              ]\n            }\n          ],\n          \"name\": \"leftSleeve\",\n          \"parent\": \"leftArm\",\n          \"pivot\": [\n            5.0,\n            22.0,\n            0.0\n          ]\n        },\n        {\n          \"name\": \"leftItem\",\n          \"parent\": \"leftArm\",\n          \"pivot\": [\n            6.0,\n            15.0,\n            1.0\n          ]\n        },\n        {\n          \"cubes\": [\n            {\n              \"origin\": [\n                -8.0,\n                12.0,\n                -2.0\n              ],\n              \"size\": [\n                4,\n                12,\n                4\n              ],\n              \"uv\": [\n                40,\n                16\n              ]\n            }\n          ],\n          \"name\": \"rightArm\",\n          \"parent\": \"body\",\n          \"pivot\": [\n            -5.0,\n            22.0,\n            0.0\n          ]\n        },\n        {\n          \"cubes\": [\n            {\n              \"inflate\": 0.250,\n              \"origin\": [\n                -8.0,\n                12.0,\n                -2.0\n              ],\n              \"size\": [\n                4,\n                12,\n                4\n              ],\n              \"uv\": [\n                40,\n                32\n              ]\n            }\n          ],\n          \"name\": \"rightSleeve\",\n          \"parent\": \"rightArm\",\n          \"pivot\": [\n            -5.0,\n            22.0,\n            0.0\n          ]\n        },\n        {\n          \"locators\": {\n            \"lead_hold\": [\n              -6,\n              15,\n              1\n            ]\n          },\n          \"name\": \"rightItem\",\n          \"parent\": \"rightArm\",\n          \"pivot\": [\n            -6,\n            15,\n            1\n          ]\n        },\n        {\n          \"cubes\": [\n            {\n              \"origin\": [\n                -0.10,\n                0.0,\n                -2.0\n              ],\n              \"size\": [\n                4,\n                12,\n                4\n              ],\n              \"uv\": [\n                16,\n                48\n              ]\n            }\n          ],\n          \"name\": \"leftLeg\",\n          \"parent\": \"root\",\n          \"pivot\": [\n            1.90,\n            12.0,\n            0.0\n          ]\n        },\n        {\n          \"cubes\": [\n            {\n              \"inflate\": 0.250,\n              \"origin\": [\n                -0.10,\n                0.0,\n                -2.0\n              ],\n              \"size\": [\n                4,\n                12,\n                4\n              ],\n              \"uv\": [\n                0,\n                48\n              ]\n            }\n          ],\n          \"name\": \"leftPants\",\n          \"parent\": \"leftLeg\",\n          \"pivot\": [\n            1.90,\n            12.0,\n            0.0\n          ]\n        },\n        {\n          \"cubes\": [\n            {\n              \"origin\": [\n                -3.90,\n                0.0,\n                -2.0\n              ],\n              \"size\": [\n                4,\n                12,\n                4\n              ],\n              \"uv\": [\n                0,\n                16\n              ]\n            }\n          ],\n          \"name\": \"rightLeg\",\n          \"parent\": \"root\",\n          \"pivot\": [\n            -1.90,\n            12.0,\n            0.0\n          ]\n        },\n        {\n          \"cubes\": [\n            {\n              \"inflate\": 0.250,\n              \"origin\": [\n                -3.90,\n                0.0,\n                -2.0\n              ],\n              \"size\": [\n                4,\n                12,\n                4\n              ],\n              \"uv\": [\n                0,\n                32\n              ]\n            }\n          ],\n          \"name\": \"rightPants\",\n          \"parent\": \"rightLeg\",\n          \"pivot\": [\n            -1.90,\n            12.0,\n            0.0\n          ]\n        },\n        {\n          \"cubes\": [\n            {\n              \"inflate\": 0.250,\n              \"origin\": [\n                -4.0,\n                12.0,\n                -2.0\n              ],\n              \"size\": [\n                8,\n                12,\n                4\n              ],\n              \"uv\": [\n                16,\n                32\n              ]\n            }\n          ],\n          \"name\": \"jacket\",\n          \"parent\": \"body\",\n          \"pivot\": [\n            0.0,\n            24.0,\n            0.0\n          ]\n        }\n      ],\n      \"description\": {\n        \"identifier\": \"geometry.humanoid.custom\",\n        \"texture_height\": 64,\n        \"texture_width\": 64,\n        \"visible_bounds_height\": 2,\n        \"visible_bounds_offset\": [\n          0,\n          1,\n          0\n        ],\n        \"visible_bounds_width\": 1\n      }\n    },\n    {\n      \"bones\": [\n        {\n          \"name\": \"root\",\n          \"pivot\": [\n            0.0,\n            0.0,\n            0.0\n          ]\n        },\n        {\n          \"name\": \"waist\",\n          \"parent\": \"root\",\n          \"pivot\": [\n            0.0,\n            12.0,\n            0.0\n          ]\n        },\n        {\n          \"cubes\": [\n            {\n              \"origin\": [\n                -4.0,\n                12.0,\n                -2.0\n              ],\n              \"size\": [\n                8,\n                12,\n                4\n              ],\n              \"uv\": [\n                16,\n                16\n              ]\n            }\n          ],\n          \"name\": \"body\",\n          \"parent\": \"waist\",\n          \"pivot\": [\n            0.0,\n            24.0,\n            0.0\n          ]\n        },\n        {\n          \"cubes\": [\n            {\n              \"origin\": [\n                -4.0,\n                24.0,\n                -4.0\n              ],\n              \"size\": [\n                8,\n                8,\n                8\n              ],\n              \"uv\": [\n                0,\n                0\n              ]\n            }\n          ],\n          \"name\": \"head\",\n          \"parent\": \"body\",\n          \"pivot\": [\n            0.0,\n            24.0,\n            0.0\n          ]\n        },\n        {\n          \"cubes\": [\n            {\n              \"inflate\": 0.50,\n              \"origin\": [\n                -4.0,\n                24.0,\n                -4.0\n              ],\n              \"size\": [\n                8,\n                8,\n                8\n              ],\n              \"uv\": [\n                32,\n                0\n              ]\n            }\n          ],\n          \"name\": \"hat\",\n          \"parent\": \"head\",\n          \"pivot\": [\n            0.0,\n            24.0,\n            0.0\n          ]\n        },\n        {\n          \"cubes\": [\n            {\n              \"origin\": [\n                -3.90,\n                0.0,\n                -2.0\n              ],\n              \"size\": [\n                4,\n                12,\n                4\n              ],\n              \"uv\": [\n                0,\n                16\n              ]\n            }\n          ],\n          \"name\": \"rightLeg\",\n          \"parent\": \"root\",\n          \"pivot\": [\n            -1.90,\n            12.0,\n            0.0\n          ]\n        },\n        {\n          \"cubes\": [\n            {\n              \"inflate\": 0.250,\n              \"origin\": [\n                -3.90,\n                0.0,\n                -2.0\n              ],\n              \"size\": [\n                4,\n                12,\n                4\n              ],\n              \"uv\": [\n                0,\n                32\n              ]\n            }\n          ],\n          \"name\": \"rightPants\",\n          \"parent\": \"rightLeg\",\n          \"pivot\": [\n            -1.90,\n            12.0,\n            0.0\n          ]\n        },\n        {\n          \"cubes\": [\n            {\n              \"origin\": [\n                -0.10,\n                0.0,\n                -2.0\n              ],\n              \"size\": [\n                4,\n                12,\n                4\n              ],\n              \"uv\": [\n                16,\n                48\n              ]\n            }\n          ],\n          \"name\": \"leftLeg\",\n          \"parent\": \"root\",\n          \"pivot\": [\n            1.90,\n            12.0,\n            0.0\n          ]\n        },\n        {\n          \"cubes\": [\n            {\n              \"inflate\": 0.250,\n              \"origin\": [\n                -0.10,\n                0.0,\n                -2.0\n              ],\n              \"size\": [\n                4,\n                12,\n                4\n              ],\n              \"uv\": [\n                0,\n                48\n              ]\n            }\n          ],\n          \"name\": \"leftPants\",\n          \"parent\": \"leftLeg\",\n          \"pivot\": [\n            1.90,\n            12.0,\n            0.0\n          ]\n        },\n        {\n          \"cubes\": [\n            {\n              \"origin\": [\n                4.0,\n                11.50,\n                -2.0\n              ],\n              \"size\": [\n                3,\n                12,\n                4\n              ],\n              \"uv\": [\n                32,\n                48\n              ]\n            }\n          ],\n          \"name\": \"leftArm\",\n          \"parent\": \"body\",\n          \"pivot\": [\n            5.0,\n            21.50,\n            0.0\n          ]\n        },\n        {\n          \"cubes\": [\n            {\n              \"inflate\": 0.250,\n              \"origin\": [\n                4.0,\n                11.50,\n                -2.0\n              ],\n              \"size\": [\n                3,\n                12,\n                4\n              ],\n              \"uv\": [\n                48,\n                48\n              ]\n            }\n          ],\n          \"name\": \"leftSleeve\",\n          \"parent\": \"leftArm\",\n          \"pivot\": [\n            5.0,\n            21.50,\n            0.0\n          ]\n        },\n        {\n          \"name\": \"leftItem\",\n          \"parent\": \"leftArm\",\n          \"pivot\": [\n            6,\n            14.50,\n            1\n          ]\n        },\n        {\n          \"cubes\": [\n            {\n              \"origin\": [\n                -7.0,\n                11.50,\n                -2.0\n              ],\n              \"size\": [\n                3,\n                12,\n                4\n              ],\n              \"uv\": [\n                40,\n                16\n              ]\n            }\n          ],\n          \"name\": \"rightArm\",\n          \"parent\": \"body\",\n          \"pivot\": [\n            -5.0,\n            21.50,\n            0.0\n          ]\n        },\n        {\n          \"cubes\": [\n            {\n              \"inflate\": 0.250,\n              \"origin\": [\n                -7.0,\n                11.50,\n                -2.0\n              ],\n              \"size\": [\n                3,\n                12,\n                4\n              ],\n              \"uv\": [\n                40,\n                32\n              ]\n            }\n          ],\n          \"name\": \"rightSleeve\",\n          \"parent\": \"rightArm\",\n          \"pivot\": [\n            -5.0,\n            21.50,\n            0.0\n          ]\n        },\n        {\n          \"locators\": {\n            \"lead_hold\": [\n              -6,\n              14.50,\n              1\n            ]\n          },\n          \"name\": \"rightItem\",\n          \"parent\": \"rightArm\",\n          \"pivot\": [\n            -6,\n            14.50,\n            1\n          ]\n        },\n        {\n          \"cubes\": [\n            {\n              \"inflate\": 0.250,\n              \"origin\": [\n                -4.0,\n                12.0,\n                -2.0\n              ],\n              \"size\": [\n                8,\n                12,\n                4\n              ],\n              \"uv\": [\n                16,\n                32\n              ]\n            }\n          ],\n          \"name\": \"jacket\",\n          \"parent\": \"body\",\n          \"pivot\": [\n            0.0,\n            24.0,\n            0.0\n          ]\n        },\n        {\n          \"name\": \"cape\",\n          \"parent\": \"body\",\n          \"pivot\": [\n            0.0,\n            24,\n            -3.0\n          ]\n        }\n      ],\n      \"description\": {\n        \"identifier\": \"geometry.humanoid.customSlim\",\n        \"texture_height\": 64,\n        \"texture_width\": 64,\n        \"visible_bounds_height\": 2,\n        \"visible_bounds_offset\": [\n          0,\n          1,\n          0\n        ],\n        \"visible_bounds_width\": 1\n      }\n    }\n  ]\n}",
   "Error": false,
   "Geometries": [
