@@ -243,6 +243,9 @@ pub struct BytesOptions<'a> {
     pub geometry: &'a [u8],
     /// An encoded cape texture; empty for none.
     pub cape: &'a [u8],
+    /// A persona skin's animation images, encoded; see
+    /// [`RenderOptions::animated`].
+    pub animated: Vec<(AnimatedType, &'a [u8])>,
     pub identifier: String,
     pub view: View,
     pub angle: Option<Angle>,
@@ -255,6 +258,15 @@ pub struct BytesOptions<'a> {
 /// encoding folded in. Bound image dimensions with [`image_dimensions`]
 /// first for untrusted uploads.
 pub fn render_bytes(opts: &BytesOptions) -> Result<Vec<u8>, Error> {
+    with_decoded(opts, |ro| ro.render_png())
+}
+
+/// Decodes every image and parses the geometry, then hands the resulting
+/// [`RenderOptions`] - which borrow them - to `f`.
+fn with_decoded<R>(
+    opts: &BytesOptions,
+    f: impl FnOnce(RenderOptions) -> Result<R, Error>,
+) -> Result<R, Error> {
     if opts.texture.is_empty() {
         return Err(Error::NoTexture);
     }
@@ -278,7 +290,90 @@ pub fn render_bytes(opts: &BytesOptions) -> Result<Vec<u8>, Error> {
     ro.camera = opts.camera;
     ro.size = opts.size;
     ro.cape = cape.as_ref();
-    ro.render_png()
+    let animated = opts
+        .animated
+        .iter()
+        .map(|(kind, data)| {
+            decode_image(data)
+                .map(|img| (*kind, img))
+                .map_err(|e| Error::Image(format!("animation {}: {e}", *kind as u32)))
+        })
+        .collect::<Result<Vec<_>, _>>()?;
+    for (kind, img) in &animated {
+        ro = ro.animated(*kind, img);
+    }
+    f(ro)
+}
+
+/// [`AnimationOptions`] with encoded bytes in place of images:
+/// [`BytesOptions`] plus the animation fields, which behave as their
+/// [`AnimationOptions`] counterparts.
+#[derive(Clone)]
+pub struct AnimationBytesOptions<'a> {
+    pub bytes: BytesOptions<'a>,
+    pub animation: &'a dyn Animator,
+    pub fps: u32,
+    pub frames: u32,
+    pub workers: usize,
+}
+
+impl<'a> AnimationBytesOptions<'a> {
+    pub fn new(bytes: BytesOptions<'a>, animation: &'a dyn Animator) -> Self {
+        AnimationBytesOptions {
+            bytes,
+            animation,
+            fps: 0,
+            frames: 0,
+            workers: 0,
+        }
+    }
+    pub fn fps(mut self, fps: u32) -> Self {
+        self.fps = fps;
+        self
+    }
+    pub fn frames(mut self, frames: u32) -> Self {
+        self.frames = frames;
+        self
+    }
+    pub fn workers(mut self, workers: usize) -> Self {
+        self.workers = workers;
+        self
+    }
+
+    fn with_animation<R>(
+        &self,
+        f: impl FnOnce(AnimationOptions) -> Result<R, Error>,
+    ) -> Result<R, Error> {
+        with_decoded(&self.bytes, |ro| {
+            f(AnimationOptions::new(ro, self.animation)
+                .fps(self.fps)
+                .frames(self.frames)
+                .workers(self.workers))
+        })
+    }
+
+    /// The same as [`render_gif_bytes`].
+    pub fn render_gif(&self) -> Result<Vec<u8>, Error> {
+        render_gif_bytes(self)
+    }
+
+    /// The same as [`render_frames_png`].
+    pub fn render_frames_png(&self) -> Result<Vec<Vec<u8>>, Error> {
+        render_frames_png(self)
+    }
+}
+
+/// Renders an animation from encoded bytes to GIF bytes:
+/// [`render_gif`](crate::render_gif) with decoding folded in.
+pub fn render_gif_bytes(opts: &AnimationBytesOptions) -> Result<Vec<u8>, Error> {
+    opts.with_animation(|ao| ao.render_gif())
+}
+
+/// Renders an animation from encoded bytes and returns every frame as PNG
+/// bytes, in order: [`render_frames`](crate::render_frames) with decoding and
+/// encoding folded in.
+pub fn render_frames_png(opts: &AnimationBytesOptions) -> Result<Vec<Vec<u8>>, Error> {
+    opts.with_animation(|ao| ao.render_frames()?.iter().map(encode_png).collect())
 }
 
 impl BytesOptions<'_> {

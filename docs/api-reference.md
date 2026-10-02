@@ -14,7 +14,8 @@ use bedrock_skin::*;
 | `RenderOptions::new(&texture)` | Options with everything defaulted: full body, front, 512px, default model. Builder methods `.geometry()`, `.identifier()`, `.cape()`, `.view()`, `.angle()`, `.parts()`, `.camera()`, `.size()`, `.pose()` set one field each, and `.animated(kind, &texture)` adds a persona animation image; the fields are public too. | `Options` |
 | `AnimatedTexture`, `AnimatedType` | A persona animation image and its kind (`Face`, `Body32`, `Body128`; `from_protocol` maps the protocol's number). Each draws its `geometry.animated_*` entry. | `AnimatedTexture`, `AnimatedType` |
 | `RenderOptions::render()`, `render_png()` | Renders these options, to an image or to PNG bytes. | `Options.Render`, `RenderPNG` |
-| `render_bytes(&BytesOptions)` | Encoded texture, geometry and cape bytes in, PNG bytes out. | `RenderBytes` |
+| `render_bytes(&BytesOptions)` | Encoded texture, geometry, cape and persona animation (`animated`) bytes in, PNG bytes out. | `RenderBytes` |
+| `render_gif_bytes(&AnimationBytesOptions)`, `render_frames_png(..)` | The same for animations: bytes in, GIF bytes or one PNG per frame out. `AnimationBytesOptions::new(bytes, &animator)` with `.fps()`, `.frames()`, `.workers()`. | `RenderGIFBytes`, `RenderFramesPNG` |
 | `render_2d(&texture, view, size)` | The flat paper-doll crop for geometry that draws nothing. | `Render2D` |
 | `View` | `Body`, `Chest`, `Head`, `Avatar`. | `ViewBody`... |
 | `Angle` | `Front`, `Iso`. | `AngleFront`, `AngleIso` |
