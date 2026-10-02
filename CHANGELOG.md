@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.2.2
 
 - Fixed: poses now find bones case-insensitively both ways. The built-in
   motions and most example animations say `leftArm`, persona models name the

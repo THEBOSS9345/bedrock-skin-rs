@@ -1,6 +1,6 @@
 [package]
 name = "bedrock-skin"
-version = "0.2.1"
+version = "0.2.2"
 edition = "2024"
 rust-version = "1.88"
 description = "Render Minecraft Bedrock skins to PNG and GIF: 3D models, capes, custom geometry, persona skins, Blockbench animations and invisible-skin detection"
