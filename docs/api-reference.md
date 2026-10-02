@@ -46,7 +46,7 @@ Textures and results are `image::RgbaImage`: straight (not premultiplied) 8-bit 
 | `complexity(&geos)` | Total bones and cubes, to bound untrusted uploads. | `Complexity` |
 | `parse_resource_patch(&bytes)` | The patch's `default` and `cape` identifiers. | `ParseResourcePatch` |
 | `Geometry`, `Bone`, `Cube`, `Locator`, `FaceUv` | The model, as the file has it. `Geometry::bone_by_name`, `children`, `locator`, `total_cubes`, `has_mesh`; `Bone::mesh`; `Cube::box_uv`, `face_uvs`. | same names |
-| `PolyMesh` | A bone's poly mesh: `normalized_uvs`, `positions`, `normals`, `uvs`, `polys`. | `PolyMesh` |
+| `PolyMesh`, `PolyVertex` | A bone's poly mesh: `normalized_uvs`, `positions`, `normals`, `uvs`, `polys`; `polygons()` gives every polygon with each corner's `position`, `normal` and `uv` looked up. `GeometryValue::poly_mesh()` reads one from a geometry tree. | `PolyMesh`, `PolyVertex` |
 | `parse_geometry_tree(&bytes)` | The whole file, every field, for picking values by path: `GeometryTree::select`, `get`, `identifiers`, `geometries`. | `ParseGeometryTree` |
 | `GeometryValue` | A picked value: `path`, `value`, and `as_f64`, `as_f64s`, `as_str`, `bone`, `cube`, `locator`, `decode`, `json`. | `GeometryValue` |
 

@@ -330,3 +330,36 @@ fn animation_bytes_match_render() {
     let empty = AnimationBytesOptions::new(BytesOptions::default(), &Motion::Walk);
     assert!(matches!(empty.render_gif(), Err(Error::NoTexture)));
 }
+
+/// polygons hands back each corner looked up: position, normal and UV, with a
+/// missing normal left zero rather than dropping the polygon. A geometry
+/// tree reads a poly mesh by path the same way.
+#[test]
+fn polygons_resolve_corners() {
+    let raw = br#"{"minecraft:geometry":[{"description":{"identifier":"g"},"bones":[{"name":"body","poly_mesh":{"normalized_uvs":true,
+        "positions":[[0,0,0],[1,0,0],[1,1,0],[0,1,0]],
+        "normals":[[0,0,-1]],
+        "uvs":[[0,0],[1,0],[1,1],[0,1]],
+        "polys":[[[0,0,0],[1,0,1],[2,0,2]],[[0,0,0],[2,5,2],[3,0,3]]]}}]}]}"#;
+    let geos = parse_geometry(raw).unwrap();
+    let m = geos[0].bones[0].mesh().unwrap();
+    assert!(m.normalized_uvs);
+    let got = m.polygons();
+    assert_eq!(got.len(), 2);
+    assert_eq!(
+        got[0][2],
+        PolyVertex {
+            position: [1.0, 1.0, 0.0],
+            normal: [0.0, 0.0, -1.0],
+            uv: [1.0, 1.0]
+        }
+    );
+    assert_eq!(got[1][1].normal, [0.0; 3]);
+    let tree = parse_geometry_tree(raw).unwrap();
+    let from_tree = tree
+        .get("*/bones/body/poly_mesh")
+        .unwrap()
+        .poly_mesh()
+        .unwrap();
+    assert_eq!(from_tree.polygons(), got);
+}

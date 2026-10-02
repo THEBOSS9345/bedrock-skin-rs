@@ -20,14 +20,18 @@ pub struct PolyMesh {
     pub uvs: Vec<Vec<f64>>,
     /// A list of polygons, each a list of `[position, normal, uv]` index
     /// triples, or the string `"tri_list"` / `"quad_list"` for vertices taken
-    /// in order.
+    /// in order. [`PolyMesh::polygons`] resolves them.
     pub polys: Option<Value>,
 }
 
-/// One corner of a polygon: its position and texture coordinate.
-#[derive(Clone, Copy, Debug, PartialEq)]
-pub(crate) struct PolyVertex {
-    pub pos: [f64; 3],
+/// One corner of a polygon, its indices looked up: a position in model
+/// space, a normal, and a texture coordinate - 0..1 with V counting up when
+/// the mesh's `normalized_uvs` is set, else texture pixels.
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct PolyVertex {
+    pub position: [f64; 3],
+    /// Zero when the corner names no usable normal.
+    pub normal: [f64; 3],
     pub uv: [f64; 2],
 }
 
@@ -53,9 +57,13 @@ impl Bone {
 }
 
 impl PolyMesh {
-    /// Every polygon resolved to its corners. A polygon that points outside
-    /// the mesh's lists, or has fewer than three corners, is skipped.
-    pub(crate) fn polygons(&self) -> Vec<Vec<PolyVertex>> {
+    /// Every polygon resolved to its corners, `"tri_list"` and `"quad_list"`
+    /// included. A polygon with fewer than three corners, or one whose
+    /// position or UV index points outside the mesh's lists, is skipped - the
+    /// renderer and the detector skip it too. Normals are not drawn, so a
+    /// missing one leaves the corner's normal zero rather than dropping the
+    /// polygon.
+    pub fn polygons(&self) -> Vec<Vec<PolyVertex>> {
         let Some(polys) = &self.polys else {
             return Vec::new();
         };
@@ -97,8 +105,10 @@ impl PolyMesh {
                 else {
                     break;
                 };
+                let normal = index(c, 1, &self.normals, 3).map_or([0.0; 3], |n| [n[0], n[1], n[2]]);
                 verts.push(PolyVertex {
-                    pos: [p[0], p[1], p[2]],
+                    position: [p[0], p[1], p[2]],
+                    normal,
                     uv: [t[0], t[1]],
                 });
             }
@@ -149,7 +159,9 @@ pub(crate) fn add_poly_mesh(
         let verts: Vec<Vertex> = poly
             .iter()
             .map(|c| {
-                let mut p = world.mul_position(Vec3::new(c.pos[0], c.pos[1], c.pos[2]).sub(pivot));
+                let mut p = world.mul_position(
+                    Vec3::new(c.position[0], c.position[1], c.position[2]).sub(pivot),
+                );
                 p.x = -p.x;
                 // Normalized UVs count V up, as the sampler does; pixel UVs
                 // count down from the top, as a cube's do.

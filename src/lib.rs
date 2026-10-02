@@ -83,7 +83,7 @@ pub use invisible::{
     SkinVisibilityResult, is_skin_invisible, is_skin_tiny, validate_geometry_size,
     validate_skin_invisibility, validate_skin_visibility,
 };
-pub use polymesh::PolyMesh;
+pub use polymesh::{PolyMesh, PolyVertex};
 pub use render::{
     Angle, AnimatedTexture, AnimatedType, Camera, DEFAULT_SIZE, RenderOptions, View, parse_angle,
     parse_parts, parse_view, render,

@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- `PolyMesh::polygons()` and `PolyVertex`: a poly mesh's polygons with each
+  corner's position, normal and UV looked up; `GeometryValue::poly_mesh()`
+  reads one from a geometry tree.
+
 ## 0.2.0
 
 - Animations from bytes: `render_gif_bytes` and `render_frames_png`, with
