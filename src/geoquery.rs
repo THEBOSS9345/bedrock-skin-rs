@@ -9,6 +9,7 @@ use crate::geometry::{
     Bone, Cube, Geometry, Locator, parse_geometry, read_bone, read_cube, read_f64s, read_locator,
 };
 use crate::jsonread::Reader;
+use crate::polymesh::PolyMesh;
 
 /// A whole geometry file, every field kept - including ones this library has
 /// no type for - so any value in it can be picked out by a path.
@@ -324,6 +325,19 @@ impl GeometryValue {
         let mut c = Cube::default();
         read_cube(&mut r, &self.value, &mut c);
         (!r.type_error && self.value.is_object()).then_some(c)
+    }
+
+    /// The value as a poly mesh, read as [`Bone::mesh`] reads one; e.g.
+    /// `tree.get("*/bones/body/poly_mesh")`.
+    pub fn poly_mesh(&self) -> Option<PolyMesh> {
+        if !self.value.is_object() {
+            return None;
+        }
+        Bone {
+            poly_mesh: Some(self.value.clone()),
+            ..Bone::default()
+        }
+        .mesh()
     }
 
     /// The value as a locator, in either of its forms.
