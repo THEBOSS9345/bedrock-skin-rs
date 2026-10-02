@@ -445,6 +445,17 @@ const EXAMPLE_FILES: [(&str, &str); 3] = [
 /// emotes, moves and fighting, made for the player model. They are the same
 /// files as in examples/animations, to read or load into Blockbench.
 /// See docs/animation.md#example-animations.
+///
+/// ```
+/// use bedrock_skin::{AnimationOptions, RenderOptions, example_animations};
+/// let texture = image::RgbaImage::from_pixel(64, 64, image::Rgba([90, 140, 200, 255]));
+/// let dance = &example_animations()["animation.player.dance"];
+/// let frames = AnimationOptions::new(RenderOptions::new(&texture).size(48), dance)
+///     .fps(5)
+///     .render_frames()?;
+/// assert!(frames.len() > 1);
+/// # Ok::<(), bedrock_skin::Error>(())
+/// ```
 pub fn example_animations() -> &'static BTreeMap<String, Animation> {
     static EXAMPLES: OnceLock<BTreeMap<String, Animation>> = OnceLock::new();
     EXAMPLES.get_or_init(|| {

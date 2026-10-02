@@ -3,6 +3,7 @@
 
 use std::collections::HashMap;
 use std::fmt;
+use std::io::Write;
 use std::str::FromStr;
 
 use image::RgbaImage;
@@ -282,6 +283,11 @@ impl<'a> AnimationOptions<'a> {
     pub fn render_gif(&self) -> Result<Vec<u8>, Error> {
         render_gif(self)
     }
+
+    /// The same as [`write_gif`].
+    pub fn write_gif<W: Write>(&self, w: W) -> Result<(), Error> {
+        write_gif(w, self)
+    }
 }
 
 /// Renders the animation frame by frame. Every frame shares one camera,
@@ -347,18 +353,38 @@ pub fn render_frames(opts: &AnimationOptions) -> Result<Vec<RgbaImage>, Error> {
 /// for most skins, which use fewer), and transparency is on or off per
 /// pixel, as the renderer's alpha test already makes it.
 pub fn render_gif(opts: &AnimationOptions) -> Result<Vec<u8>, Error> {
+    let mut out = Vec::new();
+    write_gif(&mut out, opts)?;
+    Ok(out)
+}
+
+/// Renders the animation and writes the GIF to `w` - an HTTP response, a
+/// file - without holding the encoded bytes first. It writes the same bytes
+/// [`render_gif`] returns.
+///
+/// ```
+/// use bedrock_skin::{AnimationOptions, Motion, RenderOptions};
+/// let texture = image::RgbaImage::from_pixel(64, 64, image::Rgba([90, 140, 200, 255]));
+/// let mut out = Vec::new(); // or a File, or a response body
+/// AnimationOptions::new(RenderOptions::new(&texture).size(64), &Motion::Walk)
+///     .fps(10)
+///     .write_gif(&mut out)?;
+/// assert!(out.starts_with(b"GIF89a"));
+/// # Ok::<(), bedrock_skin::Error>(())
+/// ```
+pub fn write_gif<W: Write>(w: W, opts: &AnimationOptions) -> Result<(), Error> {
     let frames = render_frames(opts)?;
     let (fps, _) = opts.timing();
     let palette = gif_palette(&frames);
     let delay = ((100.0 / fps as f64).round() as u16).max(2); // hundredths of a second
+    let out = w;
     let (w, h) = frames[0].dimensions();
     let mut flat = Vec::with_capacity(palette.len() * 3);
     for c in &palette {
         flat.extend_from_slice(&c[..3]);
     }
-    let mut out = Vec::new();
     {
-        let mut enc = gif::Encoder::new(&mut out, w as u16, h as u16, &flat).map_err(gif_error)?;
+        let mut enc = gif::Encoder::new(out, w as u16, h as u16, &flat).map_err(gif_error)?;
         if frames.len() > 1 {
             enc.set_repeat(gif::Repeat::Infinite).map_err(gif_error)?;
         }
@@ -382,7 +408,7 @@ pub fn render_gif(opts: &AnimationOptions) -> Result<Vec<u8>, Error> {
             enc.write_frame(&frame).map_err(gif_error)?;
         }
     }
-    Ok(out)
+    Ok(())
 }
 
 fn gif_error(e: gif::EncodingError) -> Error {

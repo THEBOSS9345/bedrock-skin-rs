@@ -363,3 +363,96 @@ fn polygons_resolve_corners() {
         .unwrap();
     assert_eq!(from_tree.polygons(), got);
 }
+
+/// A skin straight from the wire: raw RGBA, the patch's entry picked, the
+/// persona face attached; malformed fields name themselves.
+#[test]
+fn wire_skin_decodes() {
+    let skin = vec![200u8; 64 * 64 * 4];
+    let face = vec![255u8; 32 * 64 * 4];
+    let cape = vec![0u8; 64 * 32 * 4];
+    let geo = std::fs::read("testdata/parity/persona-mesh-geometry.json").unwrap();
+    let w = WireSkin {
+        skin_data: &skin,
+        skin_width: 64,
+        skin_height: 64,
+        cape_data: &cape,
+        cape_width: 64,
+        cape_height: 32,
+        geometry: &geo,
+        resource_patch: br#"{"geometry":{"default":"geometry.persona_test"}}"#,
+        animations: vec![WireAnimation {
+            animation_type: 1,
+            data: &face,
+            width: 32,
+            height: 64,
+        }],
+    };
+    let d = w.decode().unwrap();
+    assert_eq!(d.identifier, "geometry.persona_test");
+    assert_eq!(
+        (d.geometry.len(), d.cape.is_some(), d.animated.len()),
+        (2, true, 1)
+    );
+    assert!(
+        d.options().view(View::Head).render().is_ok(),
+        "the face draws the head"
+    );
+
+    let fallback = WireSkin {
+        skin_data: &skin,
+        skin_width: 64,
+        skin_height: 64,
+        geometry: b"null",
+        resource_patch: b"{",
+        ..WireSkin::default()
+    }
+    .decode()
+    .unwrap();
+    assert!(fallback.geometry.is_empty() && fallback.identifier.is_empty());
+
+    let short = WireSkin {
+        skin_data: &skin[..10],
+        skin_width: 64,
+        skin_height: 64,
+        ..WireSkin::default()
+    };
+    assert!(short.decode().unwrap_err().to_string().starts_with("skin"));
+    let bad_cape = WireSkin {
+        cape_data: &[1],
+        cape_width: 64,
+        cape_height: 32,
+        ..w.clone()
+    };
+    assert!(
+        bad_cape
+            .decode()
+            .unwrap_err()
+            .to_string()
+            .starts_with("cape")
+    );
+
+    let clear = vec![0u8; 64 * 64 * 4];
+    let invisible = WireSkin {
+        skin_data: &clear,
+        skin_width: 64,
+        skin_height: 64,
+        geometry: b"null",
+        ..WireSkin::default()
+    };
+    assert!(invisible.skin().unwrap().is_invisible());
+}
+
+/// The writers write exactly what the byte-returning functions return.
+#[test]
+fn writers_match_renderers() {
+    let t = tex();
+    let o = RenderOptions::new(&t).size(64);
+    let mut png = Vec::new();
+    o.write_png(&mut png).unwrap();
+    assert_eq!(png, o.render_png().unwrap());
+    let a = AnimationOptions::new(o, &Motion::Wave).fps(6);
+    let mut gif = Vec::new();
+    a.write_gif(&mut gif).unwrap();
+    assert_eq!(gif, a.render_gif().unwrap());
+}

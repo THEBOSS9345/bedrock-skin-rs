@@ -15,6 +15,8 @@ use bedrock_skin::*;
 | `AnimatedTexture`, `AnimatedType` | A persona animation image and its kind (`Face`, `Body32`, `Body128`; `from_protocol` maps the protocol's number). Each draws its `geometry.animated_*` entry. | `AnimatedTexture`, `AnimatedType` |
 | `RenderOptions::render()`, `render_png()` | Renders these options, to an image or to PNG bytes. | `Options.Render`, `RenderPNG` |
 | `render_bytes(&BytesOptions)` | Encoded texture, geometry, cape and persona animation (`animated`) bytes in, PNG bytes out. | `RenderBytes` |
+| `WireSkin { .. }.decode()` | A skin as a packet carries it - raw RGBA images, geometry, resource patch, animations - decoded into a `DecodedSkin`; `.options()` renders it, `WireSkin::skin()` checks it for invisibility. | `WireSkin.Options`, `WireSkin.Skin` |
+| `RenderOptions::write_png(w)`, `write_gif(w, &opts)` | Render straight into any `std::io::Write`: the same bytes as `render_png` and `render_gif`. | `Options.WritePNG`, `WriteGIF` |
 | `render_gif_bytes(&AnimationBytesOptions)`, `render_frames_png(..)` | The same for animations: bytes in, GIF bytes or one PNG per frame out. `AnimationBytesOptions::new(bytes, &animator)` with `.fps()`, `.frames()`, `.workers()`. | `RenderGIFBytes`, `RenderFramesPNG` |
 | `render_2d(&texture, view, size)` | The flat paper-doll crop for geometry that draws nothing. | `Render2D` |
 | `View` | `Body`, `Chest`, `Head`, `Avatar`. | `ViewBody`... |
