@@ -43,15 +43,23 @@ impl Pose {
         self.bones.insert(bone.into(), pose);
     }
 
-    /// How the bone moves: its own entry, else the entry under its
-    /// lower-case name, else at rest.
+    /// The pose for a bone: the exact name, else the bone's name lower-cased,
+    /// else any name equal to it ignoring ASCII case - the built-in motions
+    /// say "leftArm" where persona models name the bone "leftarm". When
+    /// several names match that way the smallest wins.
+    /// See docs/geometry-format.md#bone-names-ignore-case.
     pub fn of(&self, bone: &str) -> BonePose {
         if let Some(bp) = self.bones.get(bone) {
             return *bp;
         }
+        if let Some(bp) = self.bones.get(&bone.to_lowercase()) {
+            return *bp;
+        }
         self.bones
-            .get(&bone.to_lowercase())
-            .copied()
+            .iter()
+            .filter(|(name, _)| crate::render::same_bone(name, bone))
+            .min_by(|a, b| a.0.cmp(b.0))
+            .map(|(_, bp)| *bp)
             .unwrap_or_default()
     }
 

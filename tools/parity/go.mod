@@ -2,7 +2,7 @@ module github.com/THEBOSS9345/bedrock-skin-rs/tools/parity
 
 go 1.26.5
 
-require github.com/THEBOSS9345/bedrock-skin-go v0.2.0
+require github.com/THEBOSS9345/bedrock-skin-go v0.2.2-0.20261002210433-b94e6faa93ca
 
 require (
 	github.com/fogleman/fauxgl v0.0.0-20250110135958-abf826acbbbd // indirect

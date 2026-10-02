@@ -456,3 +456,20 @@ fn writers_match_renderers() {
     a.write_gif(&mut gif).unwrap();
     assert_eq!(gif, a.render_gif().unwrap());
 }
+
+/// The built-in motions say "leftArm"; a persona model names the bone
+/// "leftarm". The pose still finds it.
+#[test]
+fn pose_names_ignore_case() {
+    let mut p = Pose::new();
+    p.insert(
+        "leftArm",
+        BonePose {
+            rotation: [10.0, 0.0, 0.0],
+            ..BonePose::default()
+        },
+    );
+    assert_eq!(p.of("leftarm").rotation[0], 10.0);
+    assert_eq!(p.of("LEFTARM").rotation[0], 10.0);
+    assert_eq!(p.of("rightarm").rotation[0], 0.0);
+}

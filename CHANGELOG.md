@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- Fixed: poses now find bones case-insensitively both ways. The built-in
+  motions and most example animations say `leftArm`, persona models name the
+  bone `leftarm`, and persona skins stood still in walk, idle, wave, sneak and
+  11 animations in all.
+
 ## 0.2.1
 
 - `WireSkin` and `DecodedSkin`: a skin as a Bedrock packet carries it -
