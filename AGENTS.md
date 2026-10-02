@@ -34,7 +34,7 @@ src/lib.rs          exports, Error, image helpers, render_bytes
 src/render.rs       RenderOptions, views, framing, the camera
 src/mesh.rs         bones and cubes to triangles
 src/polymesh.rs     poly meshes: persona skins
-src/raster.rs       the rasterizer (fauxgl, ported)
+src/raster.rs       the rasterizer: fauxgl's, ported and specialised
 src/render2d.rs     the flat fallback, for geometry that draws nothing
 src/geometry.rs     geometry.json, both formats
 src/geoquery.rs     GeometryTree: values by path
