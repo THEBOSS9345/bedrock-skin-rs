@@ -3,11 +3,11 @@
 **Render Minecraft Bedrock skins to PNG and GIF, in pure Rust.** 3D bodies, heads and avatars, capes, slim and wide arms, custom geometry, persona skins, animations from Blockbench files, and a detector for invisible skins.
 
 <p align="center">
-  <img src="docs/images/body-front.png" width="160" alt="A skin rendered full body, front on">
-  <img src="docs/images/body-iso.png" width="160" alt="The same skin from an angle">
-  <img src="docs/images/avatar.png" width="160" alt="The skin's head as an avatar">
-  <img src="docs/images/walk.gif" width="160" alt="The skin walking">
-  <img src="docs/images/dance.gif" width="160" alt="The skin dancing">
+  <img src="https://raw.githubusercontent.com/THEBOSS9345/bedrock-skin-rs/main/docs/images/body-front.png" width="160" alt="A skin rendered full body, front on">
+  <img src="https://raw.githubusercontent.com/THEBOSS9345/bedrock-skin-rs/main/docs/images/body-iso.png" width="160" alt="The same skin from an angle">
+  <img src="https://raw.githubusercontent.com/THEBOSS9345/bedrock-skin-rs/main/docs/images/avatar.png" width="160" alt="The skin's head as an avatar">
+  <img src="https://raw.githubusercontent.com/THEBOSS9345/bedrock-skin-rs/main/docs/images/walk.gif" width="160" alt="The skin walking">
+  <img src="https://raw.githubusercontent.com/THEBOSS9345/bedrock-skin-rs/main/docs/images/dance.gif" width="160" alt="The skin dancing">
 </p>
 
 Texture in, image out. No GPU, no headless browser, no C library: a small software rasterizer, `#![forbid(unsafe_code)]`. It reads skins the way a Bedrock (MCPE) client sends them, so it drops straight into a proxy, a server, a Discord bot or a website.
