@@ -290,3 +290,15 @@ fn detector_measures_persona_mesh() {
     assert!(!r.is_invisible && r.visible_parts == 6, "{r:?}");
     assert!(validate_skin_invisibility(&RgbaImage::new(64, 64), &raw).is_invisible);
 }
+
+/// Frames rasterized in parallel are the frames rasterized one at a time.
+#[test]
+fn parallel_frames_match_serial() {
+    let t = tex();
+    let opts =
+        || AnimationOptions::new(RenderOptions::new(&t).cape(&t).size(48), &Motion::Walk).fps(8);
+    let serial = opts().workers(1).render_frames().unwrap();
+    let parallel = opts().render_frames().unwrap();
+    assert_eq!(serial.len(), parallel.len());
+    assert!(serial.iter().zip(&parallel).all(|(a, b)| a == b));
+}

@@ -230,6 +230,11 @@ pub struct AnimationOptions<'a> {
     pub fps: u32,
     /// How many frames to render; zero means one loop.
     pub frames: u32,
+    /// How many frames are rasterized at once; zero means every core, one
+    /// means one at a time. Frames are independent, so the images are the
+    /// same either way; a server already rendering on every core may want 1.
+    /// See docs/design-decisions.md#why-animation-frames-render-in-parallel.
+    pub workers: usize,
 }
 
 impl<'a> AnimationOptions<'a> {
@@ -239,6 +244,7 @@ impl<'a> AnimationOptions<'a> {
             animation,
             fps: 0,
             frames: 0,
+            workers: 0,
         }
     }
 
@@ -249,6 +255,11 @@ impl<'a> AnimationOptions<'a> {
 
     pub fn frames(mut self, frames: u32) -> Self {
         self.frames = frames;
+        self
+    }
+
+    pub fn workers(mut self, workers: usize) -> Self {
+        self.workers = workers;
         self
     }
 
@@ -295,9 +306,39 @@ pub fn render_frames(opts: &AnimationOptions) -> Result<Vec<RgbaImage>, Error> {
     let first = &scenes[0];
     let (eye, center) =
         camera_for_yaw_pitch(&sweep, first.fov, first.margin, first.yaw, first.pitch);
-    Ok(scenes
-        .iter()
-        .map(|sc| rasterize(&sc.layers, eye, center, sc.fov, sc.size))
+    let workers = match opts.workers {
+        0 => std::thread::available_parallelism().map_or(1, |n| n.get()),
+        n => n,
+    }
+    .min(scenes.len());
+    let draw = |sc: &crate::render::Scene| rasterize(&sc.layers, eye, center, sc.fov, sc.size);
+    if workers <= 1 {
+        return Ok(scenes.iter().map(draw).collect());
+    }
+    // Each frame has its own buffers; the threads share only the read-only
+    // scenes and textures, and every frame goes back to its own slot.
+    let mut out: Vec<Option<RgbaImage>> = vec![None; scenes.len()];
+    std::thread::scope(|s| {
+        let handles: Vec<_> = (0..workers)
+            .map(|w| {
+                let (scenes, draw) = (&scenes, &draw);
+                s.spawn(move || {
+                    (w..scenes.len())
+                        .step_by(workers)
+                        .map(|i| (i, draw(&scenes[i])))
+                        .collect::<Vec<_>>()
+                })
+            })
+            .collect();
+        for h in handles {
+            for (i, img) in h.join().expect("a frame worker panicked") {
+                out[i] = Some(img);
+            }
+        }
+    });
+    Ok(out
+        .into_iter()
+        .map(|f| f.expect("every frame drawn"))
         .collect())
 }
 

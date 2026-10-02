@@ -59,7 +59,7 @@ Textures and results are `image::RgbaImage`: straight (not premultiplied) 8-bit 
 | `Animation` | One animation: `name`, `looping`, `hold_on_last_frame`, `length`, `bones()`, `missing_bones(&geometry)`. | `Animation` |
 | `example_animations()` | The 33 bundled examples. | `ExampleAnimations` |
 | `Pose`, `BonePose` | How bones move from rest; set `RenderOptions::pose` for a still. | `Pose`, `BonePose` |
-| `AnimationOptions::new(options, &animator)` | What to animate; `.fps()`, `.frames()`. | `AnimationOptions` |
+| `AnimationOptions::new(options, &animator)` | What to animate; `.fps()`, `.frames()`, `.workers()` (frames rasterized at once; 0 means every core, 1 one at a time - the images are the same either way). | `AnimationOptions` |
 | `render_frames`, `render_gif` | Every frame with one shared camera, or a looping GIF. | `RenderFrames`, `RenderGIF` |
 
 ## Invisibility detection
