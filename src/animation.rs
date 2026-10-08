@@ -8,7 +8,8 @@ use std::str::FromStr;
 
 use image::RgbaImage;
 
-use crate::render::{RenderOptions, camera_for_yaw_pitch, rasterize};
+use crate::raster::Vec3;
+use crate::render::{Camera, RenderOptions, Scene, bounding_box, camera_for_bounds, rasterize};
 use crate::{Error, gomath};
 
 /// How one bone moves from where its geometry puts it: `rotation` is added
@@ -345,10 +346,26 @@ impl<'a> AnimationOptions<'a> {
     }
 }
 
-/// Renders the animation frame by frame. Every frame shares one camera,
-/// fitted around the whole sweep, so the model moves within a still frame
-/// rather than the frame chasing it.
-pub fn render_frames(opts: &AnimationOptions) -> Result<Vec<RgbaImage>, Error> {
+/// An animation prepared once: its per-frame scenes and the bounding box they
+/// share, kept so a viewer can draw frames one at a time as its own camera
+/// moves. [`render_frames`] builds the same thing and draws every frame;
+/// `Frames` keeps it, so one frame costs one rasterization and every frame at
+/// one camera is framed the same way - root and whole-body motion stay on
+/// screen instead of the camera chasing each pose. A viewer that turns the
+/// model as it plays draws one frame a tick this way. See docs/animation.md.
+pub struct Frames<'a> {
+    scenes: Vec<Scene<'a>>,
+    frames: usize,
+    lo: Vec3,
+    hi: Vec3,
+    scale: f64,
+    flat: Option<RgbaImage>,
+}
+
+/// Builds every frame of an animation, and the one camera they share, without
+/// rasterizing anything. It is [`render_frames`] split in two; draw the result
+/// with [`Frames::draw`].
+pub fn prepare_frames<'a>(opts: &AnimationOptions<'a>) -> Result<Frames<'a>, Error> {
     let (fps, frames) = opts.timing();
     let mut scenes = Vec::with_capacity(frames);
     let mut sweep = Vec::new();
@@ -359,48 +376,123 @@ pub fn render_frames(opts: &AnimationOptions) -> Result<Vec<RgbaImage>, Error> {
         if let Some(flat) = sc.flat {
             // Geometry that draws nothing has nothing to move: every frame is
             // the flat crop.
-            return Ok(vec![flat; frames]);
+            return Ok(Frames {
+                scenes: Vec::new(),
+                frames,
+                lo: Vec3::default(),
+                hi: Vec3::default(),
+                scale: opts.options.scale.model,
+                flat: Some(flat),
+            });
         }
         sweep.extend(sc.framing());
         scenes.push(sc);
     }
-    let first = &scenes[0];
-    let (eye, center) =
-        camera_for_yaw_pitch(&sweep, first.fov, first.margin, first.yaw, first.pitch);
-    let workers = match opts.workers {
-        0 => std::thread::available_parallelism().map_or(1, |n| n.get()),
-        n => n,
+    let (lo, hi) = bounding_box(&sweep);
+    Ok(Frames {
+        scenes,
+        frames,
+        lo,
+        hi,
+        scale: opts.options.scale.model,
+        flat: None,
+    })
+}
+
+impl Frames<'_> {
+    /// How many frames the animation has.
+    pub fn len(&self) -> usize {
+        self.frames
     }
-    .min(scenes.len());
-    let draw = |sc: &crate::render::Scene| rasterize(&sc.layers, eye, center, sc.fov, sc.size);
-    if workers <= 1 {
-        return Ok(scenes.iter().map(draw).collect());
+
+    /// Whether the animation has no frames. Never true for a prepared set.
+    pub fn is_empty(&self) -> bool {
+        self.frames == 0
     }
-    // Each frame has its own buffers; the threads share only the read-only
-    // scenes and textures, and every frame goes back to its own slot.
-    let mut out: Vec<Option<RgbaImage>> = vec![None; scenes.len()];
-    std::thread::scope(|s| {
-        let handles: Vec<_> = (0..workers)
-            .map(|w| {
-                let (scenes, draw) = (&scenes, &draw);
-                s.spawn(move || {
-                    (w..scenes.len())
-                        .step_by(workers)
-                        .map(|i| (i, draw(&scenes[i])))
-                        .collect::<Vec<_>>()
-                })
-            })
-            .collect();
-        for h in handles {
-            for (i, img) in h.join().expect("a frame worker panicked") {
-                out[i] = Some(img);
-            }
+
+    /// Rasterizes frame `i` at a `size`-square image, using the camera the
+    /// frames were prepared with unless `cam` is set, when it refits the shared
+    /// framing to `cam`. Refitting is what turns a draw into an orbit: every
+    /// frame at one camera still shares a single framing. `i` wraps into range;
+    /// a `size` of 0 means the prepared size. A persona skin's flat crop is
+    /// returned as prepared, whatever size was asked for.
+    pub fn draw(&self, i: usize, size: usize, cam: Option<Camera>) -> RgbaImage {
+        if let Some(flat) = &self.flat {
+            return flat.clone();
         }
-    });
-    Ok(out
-        .into_iter()
-        .map(|f| f.expect("every frame drawn"))
-        .collect())
+        let sc = &self.scenes[0];
+        let (mut fov, mut margin, mut yaw, mut pitch) = (sc.fov, sc.margin, sc.yaw, sc.pitch);
+        if let Some(cam) = cam {
+            if cam.fov > 0.0 {
+                fov = cam.fov;
+            }
+            if cam.margin > 0.0 {
+                margin = cam.margin;
+            }
+            if self.scale > 0.0 {
+                // scene() divides a camera's margin by Scale.Model, so a
+                // refit has to as well or a scaled model frames differently.
+                margin /= self.scale;
+            }
+            yaw = cam.yaw;
+            pitch = cam.pitch;
+        }
+        let size = if size == 0 { sc.size } else { size };
+        let i = i % self.scenes.len();
+        let (eye, center) = camera_for_bounds(self.lo, self.hi, fov, margin, yaw, pitch);
+        rasterize(&self.scenes[i].layers, eye, center, fov, size)
+    }
+
+    /// Rasterizes every frame with the shared camera - the batch
+    /// [`render_frames`] uses.
+    fn all(&self, workers: usize) -> Vec<RgbaImage> {
+        if let Some(flat) = &self.flat {
+            return vec![flat.clone(); self.frames];
+        }
+        let sc = &self.scenes[0];
+        let (eye, center) =
+            camera_for_bounds(self.lo, self.hi, sc.fov, sc.margin, sc.yaw, sc.pitch);
+        let workers = match workers {
+            0 => std::thread::available_parallelism().map_or(1, |n| n.get()),
+            n => n,
+        }
+        .min(self.scenes.len());
+        let draw = |sc: &Scene| rasterize(&sc.layers, eye, center, sc.fov, sc.size);
+        if workers <= 1 {
+            return self.scenes.iter().map(draw).collect();
+        }
+        // Each frame has its own buffers; the threads share only the read-only
+        // scenes and textures, and every frame goes back to its own slot.
+        let mut out: Vec<Option<RgbaImage>> = vec![None; self.scenes.len()];
+        std::thread::scope(|s| {
+            let handles: Vec<_> = (0..workers)
+                .map(|w| {
+                    let (scenes, draw) = (&self.scenes, &draw);
+                    s.spawn(move || {
+                        (w..scenes.len())
+                            .step_by(workers)
+                            .map(|i| (i, draw(&scenes[i])))
+                            .collect::<Vec<_>>()
+                    })
+                })
+                .collect();
+            for h in handles {
+                for (i, img) in h.join().expect("a frame worker panicked") {
+                    out[i] = Some(img);
+                }
+            }
+        });
+        out.into_iter()
+            .map(|f| f.expect("every frame drawn"))
+            .collect()
+    }
+}
+
+/// Renders the animation frame by frame. Every frame shares one camera,
+/// fitted around the whole sweep, so the model moves within a still frame
+/// rather than the frame chasing it.
+pub fn render_frames(opts: &AnimationOptions) -> Result<Vec<RgbaImage>, Error> {
+    Ok(prepare_frames(opts)?.all(opts.workers))
 }
 
 /// Renders the animation as a looping animated GIF. GIF holds 256 colours a

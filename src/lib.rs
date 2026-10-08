@@ -36,7 +36,9 @@
 //! [`Motion`] holds Minecraft's own player movements, and
 //! [`parse_animations`] reads Bedrock animation files with their Molang
 //! expressions. [`render_gif`] makes a looping GIF; [`example_animations`]
-//! has 33 to try.
+//! has 33 to try. A viewer that turns the model as it plays uses
+//! [`prepare_frames`] and [`Frames::draw`] to draw one frame at a time at its
+//! own camera.
 //!
 //! # Invisible skins
 //!
@@ -70,8 +72,8 @@ use std::io::Cursor;
 use image::{ImageFormat, ImageReader, RgbaImage};
 
 pub use animation::{
-    AnimationOptions, Animator, BonePose, Motion, Pose, parse_motion, render_frames, render_gif,
-    write_gif,
+    AnimationOptions, Animator, BonePose, Frames, Motion, Pose, parse_motion, prepare_frames,
+    render_frames, render_gif, write_gif,
 };
 pub use animfile::{Animation, example_animations, parse_animations};
 pub use detect::{PartReport, PartVisibility, Skin, SkinOptions, SkinReport, Verdict};

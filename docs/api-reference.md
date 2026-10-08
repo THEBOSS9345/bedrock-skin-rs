@@ -80,6 +80,7 @@ Textures and results are `image::RgbaImage`: straight (not premultiplied) 8-bit 
 | `Pose`, `BonePose` | How bones move from rest; set `RenderOptions::pose` for a still. | `Pose`, `BonePose` |
 | `AnimationOptions::new(options, &animator)` | What to animate; `.fps()`, `.frames()`, `.workers()` (frames rasterized at once; 0 means every core, 1 one at a time - the images are the same either way). | `AnimationOptions` |
 | `render_frames`, `render_gif` | Every frame with one shared camera, or a looping GIF. | `RenderFrames`, `RenderGIF` |
+| `prepare_frames(&AnimationOptions)`, `Frames` | Frames prepared once and drawn one at a time at a moving camera: `Frames::len`, `Frames::draw(i, size, Option<Camera>)`. | `PrepareFrames`, `Frames` |
 
 ## Invisibility detection
 

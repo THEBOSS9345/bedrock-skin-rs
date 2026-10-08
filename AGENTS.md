@@ -40,7 +40,7 @@ src/render2d.rs     the flat fallback, for geometry that draws nothing
 src/geometry.rs     geometry.json, both formats
 src/geoquery.rs     GeometryTree: values by path
 src/jsonread.rs     reading JSON with Go's rules
-src/animation.rs    Pose, Motion, frames and GIFs
+src/animation.rs    Pose, Motion, frames and GIFs, prepare_frames
 src/animfile.rs     Bedrock animation files
 src/molang.rs       Molang expressions
 src/gomath.rs       Go's trigonometry, ported

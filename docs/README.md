@@ -13,6 +13,7 @@ Everything about how this library turns a Minecraft Bedrock skin into an image, 
 | Understand how a mesh becomes pixels | [rendering-pipeline.md](rendering-pipeline.md) |
 | Understand framing, bone scoping, cameras | [views-and-cameras.md](views-and-cameras.md) |
 | Animate a skin | [animation.md](animation.md) |
+| Draw animation frames one at a time as a viewer's camera moves | [animation.md](animation.md#drawing-frames-as-a-camera-moves) |
 | Dress a skin in armor or an elytra, put items in its hands, render any of it alone | [equipment.md](equipment.md) |
 | Know why a Minecraft animation does nothing on a model | [animation.md](animation.md#which-minecraft-animations-work) |
 | Know *why* something is done a particular way | [design-decisions.md](design-decisions.md) |

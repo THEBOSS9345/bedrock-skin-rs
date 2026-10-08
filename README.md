@@ -107,6 +107,8 @@ let frames = AnimationOptions::new(RenderOptions::new(&texture), &anims["animati
 
 33 example animations come bundled - dances, emotes, a backflip, fighting moves - as `example_animations()` and as files in [examples/animations](examples/animations). Not every Minecraft animation plays on every model: an animation moves bones by name, so one made for a mob with wings does nothing on a player. `missing_bones` tells you.
 
+A viewer that rotates the model while it plays does not want the whole GIF at once: `prepare_frames` builds the frames and their shared camera without drawing, then `Frames::draw` rasterizes one frame at the viewer's own camera as it moves. See [docs/animation.md](docs/animation.md#drawing-frames-as-a-camera-moves).
+
 ## Skins straight from a packet
 
 A proxy or bot holds a skin the way the client sent it: raw RGBA, `null` geometry for a built-in model, a resource patch naming the model, and - for a persona skin - animation images carrying its face. `WireSkin` takes those fields as they are and decodes them, the right model picked and the face attached:

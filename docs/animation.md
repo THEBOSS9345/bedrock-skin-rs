@@ -27,6 +27,48 @@ let img = RenderOptions::new(&texture).pose(Motion::Sneak.pose(0.0)).render()?;
 
 `RenderFrames` builds every frame, then fits one camera around the whole sweep, so the model moves inside a still frame instead of the frame zooming to chase it. `RenderGIF` encodes those frames as a looping GIF: 256 colours a frame, shared across frames (exact for most skins, which use fewer), with on/off transparency as the renderer's alpha test already produces.
 
+## Drawing frames as a camera moves
+
+`render_frames` draws the whole animation at once, which is what a GIF needs.
+A viewer that turns the model as it plays - a live preview a user drags to
+rotate - wants the opposite: one frame now, the next when its camera moves,
+every frame still framed by the one camera fitted around the sweep.
+`prepare_frames` is that split: it builds each frame's scene and the shared
+bounding box, and rasterizes nothing until asked.
+
+```rust
+use bedrock_skin::{AnimationOptions, Camera, Frames, Motion, RenderOptions, prepare_frames};
+
+// Once, when the appearance or animation changes:
+let frames = prepare_frames(&AnimationOptions::new(
+    RenderOptions::new(&texture).size(512),
+    &Motion::Walk,
+))?;
+
+// A frame at the camera the frames were prepared with:
+let still = frames.draw(0, 512, None);
+
+// The same frame at the viewer's own camera - refits the shared framing,
+// so the model keeps its place in the image as it moves:
+let turned = frames.draw(
+    0,
+    512,
+    Some(Camera { yaw: 30.0, pitch: 10.0, fov: 35.0, margin: 1.5 }),
+);
+
+for i in 0..frames.len() {
+    let next = frames.draw(i, 512, None); // one rasterization a frame
+}
+```
+
+A `Frames` holds the per-frame scenes and their shared bounding box, so `draw`
+rasterizes one frame and refits the framing to a camera without walking the
+geometry again. Every frame at one camera still shares a single framing, which
+is what keeps root and whole-body motion on screen instead of the camera
+chasing each pose. `render_frames` is `prepare_frames` followed by drawing
+every frame, so the two always agree. In Go this is `PrepareFrames` and
+`Frames.Draw`; see [api-reference.md](api-reference.md).
+
 ## Poses
 
 A `Pose` is a `BonePose` per bone name: a `Rotation` added to the bone's own (degrees, the geometry's convention — see [geometry-format.md](geometry-format.md#rotation)), a `Position` added to its offset from its parent (model units, 1/16 of a block), and, when `Scaled`, a `Scale` multiplying it about its pivot (carrying its children; `0` hides the bone). Names match bones exactly, or else case-insensitively, as animation files are matched in game.

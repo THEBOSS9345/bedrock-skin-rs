@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.2.5
+
+- `prepare_frames` and `Frames`: an animation prepared once, its per-frame
+  scenes and their shared bounding box kept so a viewer draws one frame at a
+  time as its own camera moves. `Frames::draw(i, size, cam)` rasterizes one
+  frame and refits the shared framing to `cam`, so every frame at one camera
+  keeps the model in place instead of chasing each pose; `Frames::len` is the
+  frame count. `render_frames` is `prepare_frames` plus drawing every frame, so
+  the two always agree. For live previews that rotate while animating. Matches
+  bedrock-skin-go v0.2.4; see
+  [docs/animation.md](docs/animation.md#drawing-frames-as-a-camera-moves).
+
 ## 0.2.4
 
 - README: armor, elytra and held tools in the summary and the options

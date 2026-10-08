@@ -706,7 +706,7 @@ fn framing_for(view: View) -> (f64, f64) {
 pub(crate) const ISO_YAW: f64 = 35.0;
 pub(crate) const ISO_PITCH: f64 = 25.0;
 
-fn bounding_box(triangles: &[Triangle]) -> (Vec3, Vec3) {
+pub(crate) fn bounding_box(triangles: &[Triangle]) -> (Vec3, Vec3) {
     let mut it = triangles
         .iter()
         .flat_map(|t| t.0.iter().map(|v| v.position));
@@ -740,6 +740,20 @@ pub(crate) fn camera_for_yaw_pitch(
     pitch: f64,
 ) -> (Vec3, Vec3) {
     let (lo, hi) = bounding_box(triangles);
+    camera_for_bounds(lo, hi, fov, margin, yaw, pitch)
+}
+
+/// [`camera_for_yaw_pitch`] with the bounding box already worked out, so a
+/// caller holding one - [`Frames`](crate::Frames), across many draws - can
+/// refit the camera without walking the triangles again.
+pub(crate) fn camera_for_bounds(
+    lo: Vec3,
+    hi: Vec3,
+    fov: f64,
+    margin: f64,
+    yaw: f64,
+    pitch: f64,
+) -> (Vec3, Vec3) {
     let center = Vec3::new(
         (lo.x + hi.x) / 2.0,
         (lo.y + hi.y) / 2.0,

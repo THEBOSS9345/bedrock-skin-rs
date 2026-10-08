@@ -159,6 +159,101 @@ fn persona_skins_fall_back_to_2d() {
     assert!(frames.iter().all(|f| f == &frames[0]));
 }
 
+/// A prepared frame set draws the frames `render_frames` does, one at a time,
+/// and keeps their shared camera: root motion stays on screen rather than the
+/// camera chasing each pose.
+#[test]
+fn prepared_frames_draw_one_at_a_time() {
+    let anims = parse_animations(
+        br#"{"format_version":"1.8.0","animations":{"animation.test.root":{"loop":true,"animation_length":1.0,"bones":{"root":{"position":{"0.0":[0,0,0],"0.5":[0,4,0],"1.0":[0,0,0]}}}}}}"#,
+    )
+    .unwrap();
+    let t = tex();
+    let opts = AnimationOptions::new(
+        RenderOptions::new(&t).size(64),
+        &anims["animation.test.root"],
+    )
+    .fps(4);
+    let frames = prepare_frames(&opts).unwrap();
+    assert_eq!(frames.len(), 4);
+
+    // The root lifts the whole model; one shared camera shows it. A camera
+    // refit per pose would cancel it, leaving the head at one row.
+    let low = head_top(&frames.draw(0, 64, None));
+    let high = head_top(&frames.draw(2, 64, None));
+    assert_ne!(low, high, "framing cancelled the jump");
+
+    // Drawn one at a time is drawn as a batch.
+    let batch = opts.render_frames().unwrap();
+    for (i, want) in batch.iter().enumerate() {
+        assert_eq!(
+            &frames.draw(i, 64, None),
+            want,
+            "frame {i} drawn alone differs"
+        );
+    }
+    assert_eq!(
+        frames.draw(frames.len(), 64, None),
+        frames.draw(0, 64, None),
+        "draw should wrap an out-of-range frame index"
+    );
+    let turned = frames.draw(
+        0,
+        64,
+        Some(Camera {
+            yaw: 90.0,
+            ..Default::default()
+        }),
+    );
+    assert_ne!(
+        turned,
+        frames.draw(0, 64, None),
+        "a refit camera left the view unchanged"
+    );
+
+    // A scaled model refits the same way the batch does: a camera margin is
+    // divided by Scale.model exactly as scene() divides it.
+    let cam = Camera {
+        yaw: 20.0,
+        pitch: 10.0,
+        fov: 35.0,
+        margin: 1.2,
+    };
+    let scaled = AnimationOptions::new(
+        RenderOptions::new(&t)
+            .size(64)
+            .scale(Scale {
+                model: 2.0,
+                ..Default::default()
+            })
+            .camera(cam),
+        &anims["animation.test.root"],
+    )
+    .fps(4);
+    let scaled_frames = prepare_frames(&scaled).unwrap();
+    let scaled_batch = scaled.render_frames().unwrap();
+    for (i, want) in scaled_batch.iter().enumerate() {
+        assert_eq!(
+            &scaled_frames.draw(i, 64, Some(cam)),
+            want,
+            "scaled frame {i} differs"
+        );
+    }
+}
+
+/// The first row with an opaque pixel, or `usize::MAX` when nothing is drawn.
+fn head_top(img: &RgbaImage) -> usize {
+    let (w, h) = img.dimensions();
+    for y in 0..h {
+        for x in 0..w {
+            if img.get_pixel(x, y).0[3] >= 128 {
+                return y as usize;
+            }
+        }
+    }
+    usize::MAX
+}
+
 #[test]
 fn example_animations() {
     let ex = bedrock_skin::example_animations();
