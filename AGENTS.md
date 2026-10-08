@@ -18,7 +18,7 @@ A pure Rust library that renders Minecraft Bedrock skins to images and detects i
 
 ## Rules that are easy to break
 
-- **The rasterizer is not fauxgl's in two places**, on purpose and in both versions: edges are evaluated per pixel, and only the near and far planes clip. Do not "restore" fauxgl's edge stepping or side clipping; both drew visible lines. See docs/design-decisions.md#why-edges-are-not-stepped.
+- **The rasterizer is not fauxgl's in three places**, on purpose and in both versions: edges are evaluated per pixel, only the near and far planes clip, and a depth tie within `DEPTH_TIE` goes to the face drawn first. Do not "restore" fauxgl's edge stepping, side clipping or `<=` depth test; each drew visible lines or speckles. See docs/design-decisions.md#why-edges-are-not-stepped and #why-depth-ties-go-to-the-first-face.
 - **Do not "simplify" arithmetic.** `raster.rs`, `mesh.rs` and `render.rs` do floating-point operations in the same order as the Go code. Reordering, fusing (`mul_add`), or swapping in `f64::min`/`max`, `sin`, `cos` or `tan` changes the last bit and breaks parity. Use `gomath`.
 - **Geometry is read by `jsonread.rs`, not serde derive**, to match Go's decoder exactly (case-insensitive keys, null handling, type errors that do not stop reading).
 - **A behaviour change goes into both versions.** Change the Go library, regenerate the fixtures (`cd tools/parity && go run .`), then change the Rust until `cargo test` passes. Never edit `testdata/parity` or `testdata/golden` by hand.

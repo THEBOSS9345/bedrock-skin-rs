@@ -523,6 +523,11 @@ impl<'a> Texture<'a> {
     }
 }
 
+/// How much nearer, in screen depth (0 near to 1 far), a fragment must be
+/// to replace what is drawn: coplanar faces differ by rounding, around 1e-14;
+/// the closest real layers by over 1e-7.
+const DEPTH_TIE: f64 = 1e-10;
+
 /// The alpha test: fragments below half opacity (alpha/255 < 0.5, a byte
 /// below 128) are dropped, colour and depth both.
 /// See docs/rendering-pipeline.md#alpha-testing.
@@ -660,7 +665,11 @@ impl Context {
                         continue;
                     }
                 };
-                if bz <= self.depth[i] {
+                // A fragment must be nearer than what is there by more than
+                // DEPTH_TIE: faces only rounding sets apart leave the pixel to
+                // the one drawn first. A NaN depth fails this as in Go.
+                // See docs/design-decisions.md#why-depth-ties-go-to-the-first-face.
+                if bz < self.depth[i] - DEPTH_TIE {
                     self.depth[i] = z;
                     self.put(x, y, color);
                 }

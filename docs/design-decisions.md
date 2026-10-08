@@ -244,6 +244,12 @@ A cube's bottom face takes the top face's layout mirrored left to right. The lib
 
 The elytra showed it. Its wings' bottom-face texture is opaque in one corner only, the corner under the bottom row of feathers on the back face. Mapped any other way, that corner landed away from the feathers and drew a plate floating off the wing; vanilla's elytra in game has none. All four orientations were rendered from six angles and the separate pieces in each image counted: only this one left every wing a single piece from every angle.
 
+## Why depth ties go to the first face
+
+Minecraft's models overlap their boxes: the two legs share a strip down the middle (each is 4 wide on pivots 3.8 apart), and armor's inflated boxes overlap more - the leggings' body and legs share a band at the belt, the boots' legs a wider strip. Where they overlap, their front faces are the same plane. The depth test then compared two depths that differ only by rounding, and each pixel went to whichever came out a hair nearer: a speckle of the two faces' colours along every seam, on plain skins and armor alike.
+
+A fragment now has to be nearer than what is drawn by more than `DEPTH_TIE` (1e-10 in screen depth, 0 near to 1 far) to replace it, so a tie goes to the face drawn first, for every pixel of the overlap. The margin sits far from both sides: coplanar faces differ by around 1e-14, and the closest real layers - the chestplate's body 0.01 units out from the boots and leggings beneath - by over 1e-7 even framed from far off. Drawing order is the geometry's bone order, so the body wins over the legs at the belt and the right leg over the left down the middle.
+
 ## Why edges are not stepped
 
 fauxgl evaluates a triangle's three edge functions once at the start of each row and then adds a constant per pixel. Over a long row the rounding in those additions accumulates, and for a thin triangle seen nearly edge-on it was enough to count pixels past the true edge as inside: one-pixel slivers of a face's colour stuck out sideways from its silhouette. They showed on armor and on ordinary skins alike. The rasterizer now evaluates each pixel's edge functions afresh, `screenEdge(s1, s2, p)` with `p` the pixel's centre. Two triangles sharing an edge evaluate it with the same two products in the opposite order, so one gets exactly the negation of the other's value and no pixel on a shared edge is lost or doubled by rounding.
@@ -259,7 +265,7 @@ The Go version's rasterizer is fauxgl's, specialised (see [above](#why-the-raste
 It has no threads and no locks: one render is one thread, as in Go (see [why rasterization is single-threaded](#why-rasterization-is-single-threaded)).
 
 
-It departs from fauxgl in two places, both in the Go version too: edges are evaluated per pixel, and only the near and far planes clip. See [Why edges are not stepped](#why-edges-are-not-stepped).
+It departs from fauxgl in three places, all in the Go version too: edges are evaluated per pixel and only the near and far planes clip (see [Why edges are not stepped](#why-edges-are-not-stepped)), and a depth tie goes to the face drawn first (see [Why depth ties go to the first face](#why-depth-ties-go-to-the-first-face)).
 ## Why geometry is read the way Go reads JSON
 
 Go's `encoding/json` matches object keys to fields ignoring case, lets a later key overwrite an earlier one, leaves a number as it was when given `null`, and, on a value of the wrong type, carries on reading and reports the error at the end. The geometry parser's decisions hang on those rules - a type error anywhere in the modern format means "try the legacy one", and in a legacy entry it means "skip this entry". `src/jsonread.rs` reads `serde_json` values with exactly those rules, rather than deriving `Deserialize`, so a malformed upload is accepted or rejected the same way in both.
