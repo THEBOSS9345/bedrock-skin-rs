@@ -1,6 +1,6 @@
 # bedrock-skin
 
-**Render Minecraft Bedrock skins to PNG and GIF, in pure Rust.** 3D bodies, heads and avatars, capes, slim and wide arms, custom geometry, persona skins, animations from Blockbench files, and a detector for invisible skins.
+**Render Minecraft Bedrock skins to PNG and GIF, in pure Rust.** 3D bodies, heads and avatars, capes, slim and wide arms, custom geometry, persona skins, armor, elytra and held tools, animations from Blockbench files, and a detector for invisible skins.
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/THEBOSS9345/bedrock-skin-rs/main/docs/images/body-front.png" width="160" alt="A skin rendered full body, front on">
@@ -69,6 +69,10 @@ let img = RenderOptions::new(&texture)
 | `camera` | Explicit yaw, pitch, FOV and margin. Overrides `angle`. |
 | `size` | Output edge length; 0 means 512. Always square. |
 | `pose` | Moves bones, e.g. one frame of an animation. |
+| `armor` | Armor and elytra worn over the skin, one texture per piece. `Armor::set(&layer1, &layer2)` for a full set. |
+| `right_hand`, `left_hand` | An item held in each hand, placed as the game places it, with an optional `adjust` to move, turn or resize it. |
+| `scale` | The figure's size in the image (`model`) and per-bone scales (`parts`). |
+| `hide_skin` | Draws the equipment alone, without the skin; `RenderOptions::equipment()` needs no texture. |
 
 Bones are picked by ancestry, so naming `head` also brings a hat, hair, ears or horns parented under it. Custom skins work with no special-casing.
 
