@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.3.0
+## 0.2.3
 
 - Armor: `RenderOptions::armor` wears a helmet, chestplate, leggings and boots, one
   texture per piece as a resource pack lays them out, on vanilla's armor
