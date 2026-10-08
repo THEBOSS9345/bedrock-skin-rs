@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.4
+
+- README: armor, elytra and held tools in the summary and the options
+  table, so the crate page lists them. No code changes: it renders exactly
+  as 0.2.3, and as bedrock-skin-go v0.2.3.
+
 ## 0.2.3
 
 - Armor: `RenderOptions::armor` wears a helmet, chestplate, leggings and boots, one
