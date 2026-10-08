@@ -169,7 +169,9 @@ fn rect_for<'a>(rects: &'a [(String, UvRect)], face: &str) -> Option<&'a UvRect>
 fn face_corner(face: &str, u: f64, v: f64, hx: f64, hy: f64, hz: f64) -> Vec3 {
     match face {
         "up" => Vec3::new(u * hx, hy, v * hz),
-        "down" => Vec3::new(u * hx, -hy, -v * hz),
+        // "up" mirrored left to right, as Bedrock lays the bottom face out.
+        // See docs/design-decisions.md#why-the-bottom-face-is-mirrored.
+        "down" => Vec3::new(-u * hx, -hy, v * hz),
         "north" => Vec3::new(-u * hx, v * hy, -hz),
         "south" => Vec3::new(u * hx, v * hy, hz),
         "east" => Vec3::new(hx, v * hy, -u * hz),
@@ -188,7 +190,7 @@ const DEG_TO_RAD: f64 = std::f64::consts::PI / 180.0;
 /// standard right-handed terms is Rz(-z)·Ry(y)·Rx(-x). fauxgl's rotation
 /// turns the opposite way to the standard one, so the signs here are +x,
 /// -y, +z. See docs/geometry-format.md#rotation.
-fn rotation_matrix(r: &[f64]) -> Mat4 {
+pub(crate) fn rotation_matrix(r: &[f64]) -> Mat4 {
     Mat4::identity()
         .rotate(Vec3::new(1.0, 0.0, 0.0), at(r, 0) * DEG_TO_RAD)
         .rotate(Vec3::new(0.0, 1.0, 0.0), -at(r, 1) * DEG_TO_RAD)
@@ -301,7 +303,7 @@ fn bone_local_matrix(b: &Bone, parent_pivot: &[f64], p: &BonePose) -> Mat4 {
 
 /// Every bone's absolute transform, composed up the parent chain. A parent
 /// cycle resolves to identity rather than recursing forever.
-fn bone_world_matrices(geo: &Geometry, pose: &Pose) -> HashMap<String, Mat4> {
+pub(crate) fn bone_world_matrices(geo: &Geometry, pose: &Pose) -> HashMap<String, Mat4> {
     let by_name: HashMap<&str, &Bone> = geo.bones.iter().map(|b| (b.name.as_str(), b)).collect();
     let mut result: HashMap<String, Mat4> = HashMap::new();
 

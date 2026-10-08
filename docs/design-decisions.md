@@ -238,12 +238,28 @@ Rust's `sin`, `cos` and `tan` call the platform's C maths library, which can rou
 
 The match is with Go on x86-64. Go's compiler fuses multiply-adds on ARM, so Go itself gives slightly different results there; Rust never fuses on its own, so this crate gives the same answer on every processor.
 
+## Why the bottom face is mirrored
+
+A cube's bottom face takes the top face's layout mirrored left to right. The library used to map it as the top face flipped front to back instead, for a long time without anyone seeing: on a skin the bottom faces are the underside of the head, arms and feet, almost never in view, and mostly one colour when they are.
+
+The elytra showed it. Its wings' bottom-face texture is opaque in one corner only, the corner under the bottom row of feathers on the back face. Mapped any other way, that corner landed away from the feathers and drew a plate floating off the wing; vanilla's elytra in game has none. All four orientations were rendered from six angles and the separate pieces in each image counted: only this one left every wing a single piece from every angle.
+
+## Why edges are not stepped
+
+fauxgl evaluates a triangle's three edge functions once at the start of each row and then adds a constant per pixel. Over a long row the rounding in those additions accumulates, and for a thin triangle seen nearly edge-on it was enough to count pixels past the true edge as inside: one-pixel slivers of a face's colour stuck out sideways from its silhouette. They showed on armor and on ordinary skins alike. The rasterizer now evaluates each pixel's edge functions afresh, `screenEdge(s1, s2, p)` with `p` the pixel's centre. Two triangles sharing an edge evaluate it with the same two products in the opposite order, so one gets exactly the negation of the other's value and no pixel on a shared edge is lost or doubled by rounding.
+
+fauxgl also clips every triangle against all six planes of the view volume. A face larger than the image - a head filling an avatar - was clipped as two triangles, each cut along the image border separately, and the new vertices the cuts made on their shared diagonal did not land exactly together. A one-pixel gap opened down the face's diagonal and the layer underneath showed through it. Only the near and far planes need clipping, so only they clip now: a triangle that just runs off the image is drawn whole, and the rasterizer keeps to pixels on the image. That also fixed the pixel index, `y*width + x`, which for an `x` off the image wrapped into the neighbouring row.
+
+Both changed every golden and parity fixture by a few pixels, all on edges; the parity fixtures were regenerated from the Go library and this rasterizer changed to match.
+
 ## Why the rasterizer is fauxgl, rewritten
 
 The Go version's rasterizer is fauxgl's, specialised (see [above](#why-the-rasterizer-is-specialised)); its matrices and clipping are still fauxgl's own. `src/raster.rs` is all of that - matrices, clipping, the edge-function rasterizer, perspective-correct interpolation, nearest-neighbour sampling and the alpha test - written with the same operations in the same order, because floating-point arithmetic is not associative and `(a + b) + c` can differ from `a + (b + c)` in the last bit. It keeps fauxgl's quirks too: a fragment between half and fully opaque is blended rather than stored, and its odd integer conversions of out-of-range floats.
 
 It has no threads and no locks: one render is one thread, as in Go (see [why rasterization is single-threaded](#why-rasterization-is-single-threaded)).
 
+
+It departs from fauxgl in two places, both in the Go version too: edges are evaluated per pixel, and only the near and far planes clip. See [Why edges are not stepped](#why-edges-are-not-stepped).
 ## Why geometry is read the way Go reads JSON
 
 Go's `encoding/json` matches object keys to fields ignoring case, lets a later key overwrite an earlier one, leaves a number as it was when given `null`, and, on a value of the wrong type, carries on reading and reports the error at the end. The geometry parser's decisions hang on those rules - a type error anywhere in the modern format means "try the legacy one", and in a legacy entry it means "skip this entry". `src/jsonread.rs` reads `serde_json` values with exactly those rules, rather than deriving `Deserialize`, so a malformed upload is accepted or rejected the same way in both.

@@ -75,6 +75,53 @@ impl Pose {
     pub fn is_empty(&self) -> bool {
         self.bones.is_empty()
     }
+
+    /// A copy with each of `extra` applied after the pose this already gives
+    /// that bone. A bone's entry is found as [`Pose::of`] finds it and stored
+    /// under the name `extra` uses, so no other spelling of the name shadows
+    /// it. `extra` is applied in name order.
+    pub(crate) fn with(&self, extra: &[(&str, BonePose)]) -> Pose {
+        let mut out = self.clone();
+        let mut extra = extra.to_vec();
+        extra.sort_by(|a, b| a.0.cmp(b.0));
+        for (name, q) in extra {
+            let bp = out.of(name).then(&q);
+            out.bones
+                .retain(|other, _| !crate::render::same_bone(other, name));
+            out.bones.insert(name.to_string(), bp);
+        }
+        out
+    }
+}
+
+impl BonePose {
+    /// This with `q` applied after it: rotations and positions add, scales
+    /// multiply.
+    pub(crate) fn then(&self, q: &BonePose) -> BonePose {
+        let (p, r) = (self, q);
+        BonePose {
+            rotation: [
+                p.rotation[0] + r.rotation[0],
+                p.rotation[1] + r.rotation[1],
+                p.rotation[2] + r.rotation[2],
+            ],
+            position: [
+                p.position[0] + r.position[0],
+                p.position[1] + r.position[1],
+                p.position[2] + r.position[2],
+            ],
+            scale: match (p.scaled, r.scaled) {
+                (true, true) => [
+                    p.scale[0] * r.scale[0],
+                    p.scale[1] * r.scale[1],
+                    p.scale[2] * r.scale[2],
+                ],
+                (false, true) => r.scale,
+                _ => p.scale,
+            },
+            scaled: p.scaled || r.scaled,
+        }
+    }
 }
 
 impl<S: Into<String>> FromIterator<(S, BonePose)> for Pose {
@@ -383,7 +430,12 @@ pub fn render_gif(opts: &AnimationOptions) -> Result<Vec<u8>, Error> {
 pub fn write_gif<W: Write>(w: W, opts: &AnimationOptions) -> Result<(), Error> {
     let frames = render_frames(opts)?;
     let (fps, _) = opts.timing();
-    let palette = gif_palette(&frames);
+    encode_gif(w, &frames, fps)
+}
+
+/// Writes `frames` as a looping GIF at `fps` frames a second.
+pub(crate) fn encode_gif<W: Write>(w: W, frames: &[RgbaImage], fps: u32) -> Result<(), Error> {
+    let palette = gif_palette(frames);
     let delay = ((100.0 / fps as f64).round() as u16).max(2); // hundredths of a second
     let out = w;
     let (w, h) = frames[0].dimensions();
@@ -397,7 +449,7 @@ pub fn write_gif<W: Write>(w: W, opts: &AnimationOptions) -> Result<(), Error> {
             enc.set_repeat(gif::Repeat::Infinite).map_err(gif_error)?;
         }
         let mut index_of: HashMap<[u8; 3], u8> = HashMap::new();
-        for f in &frames {
+        for f in frames {
             let mut buf = Vec::with_capacity((w * h) as usize);
             for p in f.pixels() {
                 let [r, g, b, a] = p.0;

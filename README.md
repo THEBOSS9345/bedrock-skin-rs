@@ -74,6 +74,20 @@ Bones are picked by ancestry, so naming `head` also brings a hat, hair, ears or 
 
 `parse_view`, `parse_angle` and `parse_parts` turn request parameters into options, and **reject** names they don't know, so a request for `avatr` is an error rather than a full-body render.
 
+## Armor, elytra and held items
+
+Dress the skin in armor or an elytra and put an item in either hand. The textures come from a resource pack, as the game lays them out:
+
+```rust
+let img = RenderOptions::new(&skin)
+    .armor(Armor::set(&diamond1, &diamond2))   // diamond_1.png, diamond_2.png
+    .right_hand(Held::new(&diamond_sword))     // diamond_sword.png
+    .left_hand(Held { flat: true, ..Held::new(&bread) })
+    .render()?;
+```
+
+Pieces mix freely, and equipment moves with every animation. Items sit where the game puts them; for one that does not suit, `Held::adjust` moves, turns or resizes it. `RenderOptions::scale` resizes the whole figure or any part of it. Any of it renders on its own too: `RenderOptions::equipment()` draws the equipment without a skin, and `render_item` draws an item by itself, or spins it with `render_item_gif`. See [docs/equipment.md](docs/equipment.md).
+
 ## Animation
 
 Minecraft's own player motions are built in (`Motion::Walk`, `Idle`, `Wave`, `Sneak`), and `parse_animations` reads any Bedrock animation file - what Blockbench exports - with keyframes, smooth interpolation and Molang expressions.

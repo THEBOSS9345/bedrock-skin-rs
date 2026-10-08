@@ -50,6 +50,7 @@
 mod animation;
 mod animfile;
 mod detect;
+mod equipment;
 mod geometry;
 mod geoquery;
 mod gomath;
@@ -74,6 +75,10 @@ pub use animation::{
 };
 pub use animfile::{Animation, example_animations, parse_animations};
 pub use detect::{PartReport, PartVisibility, Skin, SkinOptions, SkinReport, Verdict};
+pub use equipment::{
+    Armor, Held, ItemAdjust, ItemAnimationOptions, ItemOptions, Scale, render_item,
+    render_item_frames, render_item_gif,
+};
 pub use geometry::{
     Bone, Cube, FaceUv, Geometry, Locator, ResourcePatch, complexity, default_geometry, find_cape,
     is_empty, parse_geometry, parse_resource_patch, select_geometry,
@@ -255,6 +260,47 @@ pub struct BytesOptions<'a> {
     pub parts: Vec<String>,
     pub camera: Option<Camera>,
     pub size: u32,
+    /// [`RenderOptions::armor`] with each piece encoded.
+    pub armor: ArmorBytes<'a>,
+    /// [`RenderOptions`]' hands with the item encoded.
+    pub right_hand: HeldBytes<'a>,
+    pub left_hand: HeldBytes<'a>,
+    pub scale: Scale,
+    /// [`RenderOptions::hide_skin`]; `texture` may then be empty.
+    pub hide_skin: bool,
+}
+
+/// [`Armor`] with each piece's texture encoded as PNG or JPEG; an empty
+/// piece is not worn.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct ArmorBytes<'a> {
+    pub helmet: &'a [u8],
+    pub chestplate: &'a [u8],
+    pub leggings: &'a [u8],
+    pub boots: &'a [u8],
+    pub elytra: &'a [u8],
+}
+
+impl<'a> ArmorBytes<'a> {
+    /// [`Armor::set`] for encoded textures.
+    pub fn set(layer1: &'a [u8], layer2: &'a [u8]) -> ArmorBytes<'a> {
+        ArmorBytes {
+            helmet: layer1,
+            chestplate: layer1,
+            leggings: layer2,
+            boots: layer1,
+            elytra: &[],
+        }
+    }
+}
+
+/// [`Held`] with the item's sprite an encoded PNG or JPEG; empty holds
+/// nothing.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct HeldBytes<'a> {
+    pub item: &'a [u8],
+    pub flat: bool,
+    pub adjust: ItemAdjust,
 }
 
 /// Renders from encoded bytes to PNG bytes: [`render`] with decoding and
@@ -270,10 +316,14 @@ fn with_decoded<R>(
     opts: &BytesOptions,
     f: impl FnOnce(RenderOptions) -> Result<R, Error>,
 ) -> Result<R, Error> {
-    if opts.texture.is_empty() {
+    if opts.texture.is_empty() && !opts.hide_skin {
         return Err(Error::NoTexture);
     }
-    let texture = decode_image(opts.texture).map_err(|e| Error::Image(format!("texture: {e}")))?;
+    let texture = if opts.texture.is_empty() {
+        RgbaImage::new(0, 0)
+    } else {
+        decode_image(opts.texture).map_err(|e| Error::Image(format!("texture: {e}")))?
+    };
     let geos = if is_empty(opts.geometry) {
         Vec::new()
     } else {
@@ -305,7 +355,113 @@ fn with_decoded<R>(
     for (kind, img) in &animated {
         ro = ro.animated(*kind, img);
     }
+
+    // A set shares one texture between several pieces, so each distinct
+    // encoding is decoded once.
+    const PIECES: [&str; 5] = ["helmet", "chestplate", "leggings", "boots", "elytra"];
+    let a = &opts.armor;
+    let raw = [a.helmet, a.chestplate, a.leggings, a.boots, a.elytra];
+    let mut decoded: Vec<RgbaImage> = Vec::new();
+    let mut index: [Option<usize>; 5] = [None; 5];
+    for i in 0..raw.len() {
+        if raw[i].is_empty() {
+            continue;
+        }
+        if let Some(j) = (0..i).find(|&j| index[j].is_some() && raw[j] == raw[i]) {
+            index[i] = index[j];
+            continue;
+        }
+        decoded.push(
+            decode_image(raw[i]).map_err(|e| Error::Image(format!("armor {}: {e}", PIECES[i])))?,
+        );
+        index[i] = Some(decoded.len() - 1);
+    }
+    let held = |h: &HeldBytes, name: &str| -> Result<Option<RgbaImage>, Error> {
+        if h.item.is_empty() {
+            return Ok(None);
+        }
+        decode_image(h.item)
+            .map(Some)
+            .map_err(|e| Error::Image(format!("{name} item: {e}")))
+    };
+    let right = held(&opts.right_hand, "right hand")?;
+    let left = held(&opts.left_hand, "left hand")?;
+
+    let piece = |i: usize| index[i].map(|k| &decoded[k]);
+    ro.armor = Armor {
+        helmet: piece(0),
+        chestplate: piece(1),
+        leggings: piece(2),
+        boots: piece(3),
+        elytra: piece(4),
+    };
+    ro.right_hand = Held {
+        item: right.as_ref(),
+        flat: opts.right_hand.flat,
+        adjust: opts.right_hand.adjust,
+    };
+    ro.left_hand = Held {
+        item: left.as_ref(),
+        flat: opts.left_hand.flat,
+        adjust: opts.left_hand.adjust,
+    };
+    ro.scale = opts.scale.clone();
+    ro.hide_skin = opts.hide_skin;
     f(ro)
+}
+
+/// [`ItemOptions`] with the item's sprite an encoded PNG or JPEG.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct ItemBytesOptions<'a> {
+    pub item: &'a [u8],
+    pub angle: Option<Angle>,
+    pub camera: Option<Camera>,
+    pub size: u32,
+    pub adjust: ItemAdjust,
+}
+
+impl ItemBytesOptions<'_> {
+    fn with_item<R>(&self, f: impl FnOnce(ItemOptions) -> Result<R, Error>) -> Result<R, Error> {
+        if self.item.is_empty() {
+            return Err(Error::NoTexture);
+        }
+        let item = decode_image(self.item).map_err(|e| Error::Image(format!("item: {e}")))?;
+        f(ItemOptions {
+            item: &item,
+            angle: self.angle,
+            camera: self.camera,
+            size: self.size,
+            adjust: self.adjust,
+        })
+    }
+}
+
+/// Renders an item on its own from encoded bytes to PNG bytes:
+/// [`render_item`] with decoding and encoding folded in.
+pub fn render_item_bytes(opts: &ItemBytesOptions) -> Result<Vec<u8>, Error> {
+    opts.with_item(|o| encode_png(&render_item(&o)?))
+}
+
+/// [`ItemAnimationOptions`] with the item's sprite encoded.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct ItemAnimationBytesOptions<'a> {
+    pub item: ItemBytesOptions<'a>,
+    pub duration: f64,
+    pub fps: u32,
+    pub frames: u32,
+}
+
+/// Spins an item on its own from encoded bytes to GIF bytes:
+/// [`render_item_gif`] with decoding folded in.
+pub fn render_item_gif_bytes(opts: &ItemAnimationBytesOptions) -> Result<Vec<u8>, Error> {
+    opts.item.with_item(|item| {
+        render_item_gif(&ItemAnimationOptions {
+            item,
+            duration: opts.duration,
+            fps: opts.fps,
+            frames: opts.frames,
+        })
+    })
 }
 
 /// [`AnimationOptions`] with encoded bytes in place of images:

@@ -25,6 +25,22 @@ use bedrock_skin::*;
 | `DEFAULT_SIZE` | 512. | `DefaultSize` |
 | `parse_view`, `parse_angle`, `parse_parts` | Read request parameters, rejecting unknown names. | `ParseView`, `ParseAngle`, `ParseParts` |
 
+## Equipment
+
+See [equipment.md](equipment.md).
+
+| Rust | What it does | Go |
+| --- | --- | --- |
+| `Armor { helmet, chestplate, leggings, boots, elytra }`, `Armor::set(&layer1, &layer2)` | Armor and elytra worn over the skin, one texture per piece; `.armor()` on `RenderOptions`. The elytra takes the chestplate's slot. | `Armor`, `ArmorSet` |
+| `Held { item, flat, adjust }`, `Held::new(&item)` | An item in one hand; `.right_hand()`, `.left_hand()`. Upright as a tool unless `flat`. | `Held` |
+| `ItemAdjust { offset, rotation, scale }` | Moves, turns or resizes a held item from the game's placement, about its grip. | `ItemAdjust` |
+| `Scale { model, parts }` | The figure's size in the image, and per-bone scales; `.scale()`. | `Scale` |
+| `RenderOptions::equipment()`, `.hide_skin(true)` | The equipment alone, without the skin; no texture needed. | `Options.HideSkin` |
+| `render_item(&ItemOptions)`, `ItemOptions::new(&item)` | An item on its own, extruded as held; `.angle()`, `.camera()`, `.size()`, `.adjust()`. | `RenderItem` |
+| `render_item_frames`, `render_item_gif(&ItemAnimationOptions)` | The item spinning, one turn a loop (`duration`, `fps`, `frames`). | `RenderItemFrames`, `RenderItemGIF` |
+| `ArmorBytes`, `HeldBytes`, `BytesOptions::{armor, right_hand, left_hand, scale, hide_skin}` | The same from encoded bytes. | `ArmorBytes`, `HeldBytes` |
+| `render_item_bytes(&ItemBytesOptions)`, `render_item_gif_bytes(&ItemAnimationBytesOptions)` | Items on their own from encoded bytes. | `RenderItemBytes`, `RenderItemGIFBytes` |
+
 ## Images
 
 | Rust | What it does | Go |

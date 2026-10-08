@@ -26,6 +26,36 @@ fn test_texture() -> RgbaImage {
     })
 }
 
+/// An armor layer, 64x32 as the game's are, with a transparent patch where
+/// real chestplates leave the lower arm bare.
+fn armor_texture(tint: u8) -> RgbaImage {
+    RgbaImage::from_fn(64, 32, |x, y| {
+        let a = if (40..56).contains(&x) && y >= 26 {
+            0
+        } else {
+            255
+        };
+        Rgba([tint, (120 + x * 2) as u8, (140 + y * 3) as u8, a])
+    })
+}
+
+/// An item sprite of side n: a diagonal blade whose alpha sweeps every
+/// value, to pin the held item's alpha cut-off.
+fn item_texture(n: u32) -> RgbaImage {
+    RgbaImage::from_fn(n, n, |x, y| {
+        let d = x as i32 + y as i32 - (n as i32 - 1);
+        if !(-1..=1).contains(&d) {
+            return Rgba([0, 0, 0, 0]);
+        }
+        Rgba([
+            (x * 16) as u8,
+            (200 - y * 5) as u8,
+            (60 + d * 50) as u8,
+            ((x * 37 + y * 11) % 256) as u8,
+        ])
+    })
+}
+
 fn semi_texture() -> RgbaImage {
     RgbaImage::from_fn(64, 64, |x, y| {
         Rgba([
@@ -273,7 +303,7 @@ fn renders_match_go() {
         (
             "scaled-pose",
             RenderOptions::new(&test)
-                .pose(scaled)
+                .pose(scaled.clone())
                 .angle(Angle::Iso)
                 .size(96),
         ),
@@ -367,6 +397,276 @@ fn renders_match_go() {
                 .size(96),
         ),
     ];
+    let (a40, a150, a200, a90, a220) = (
+        armor_texture(40),
+        armor_texture(150),
+        armor_texture(200),
+        armor_texture(90),
+        armor_texture(220),
+    );
+    let (item16, item24) = (item_texture(16), item_texture(24));
+    let diamond = Armor::set(&a40, &a150);
+    let winged = Armor {
+        elytra: Some(&a220),
+        ..diamond
+    };
+    let sword = Held::new(&item16);
+    let flat = Held {
+        flat: true,
+        ..Held::new(&item16)
+    };
+    let mut cases = cases;
+    cases.extend([
+        (
+            "armor-iso",
+            RenderOptions::new(&test)
+                .armor(diamond)
+                .angle(Angle::Iso)
+                .size(96),
+        ),
+        (
+            "armor-back",
+            RenderOptions::new(&semi)
+                .armor(diamond)
+                .cape(&test)
+                .camera(cam(160.0, 25.0, 0.0, 0.0))
+                .size(96),
+        ),
+        (
+            "armor-mixed-slim",
+            RenderOptions::new(&test)
+                .identifier("geometry.humanoid.customSlim")
+                .armor(Armor {
+                    helmet: Some(&a200),
+                    boots: Some(&a90),
+                    ..Armor::default()
+                })
+                .angle(Angle::Iso)
+                .size(80),
+        ),
+        (
+            "armor-avatar",
+            RenderOptions::new(&test)
+                .armor(diamond)
+                .right_hand(sword)
+                .view(View::Avatar)
+                .size(64),
+        ),
+        (
+            "armor-chest",
+            RenderOptions::new(&test)
+                .armor(diamond)
+                .right_hand(sword)
+                .left_hand(flat)
+                .view(View::Chest)
+                .size(72),
+        ),
+        (
+            "elytra-back",
+            RenderOptions::new(&test)
+                .armor(winged)
+                .camera(cam(170.0, 15.0, 0.0, 0.0))
+                .size(96),
+        ),
+        (
+            "elytra-side",
+            RenderOptions::new(&semi)
+                .armor(winged)
+                .right_hand(sword)
+                .camera(cam(-70.0, -20.0, 0.0, 0.0))
+                .size(96),
+        ),
+        (
+            "held-side",
+            RenderOptions::new(&test)
+                .right_hand(sword)
+                .camera(cam(-70.0, 10.0, 0.0, 0.0))
+                .size(96),
+        ),
+        (
+            "held-24",
+            RenderOptions::new(&semi)
+                .right_hand(Held::new(&item24))
+                .angle(Angle::Iso)
+                .size(96),
+        ),
+        (
+            "held-left",
+            RenderOptions::new(&test)
+                .left_hand(sword)
+                .camera(cam(60.0, 10.0, 0.0, 0.0))
+                .size(96),
+        ),
+        (
+            "held-both-flat",
+            RenderOptions::new(&test)
+                .right_hand(flat)
+                .left_hand(Held {
+                    flat: true,
+                    ..Held::new(&item24)
+                })
+                .angle(Angle::Iso)
+                .size(96),
+        ),
+        (
+            "held-adjust",
+            RenderOptions::new(&test)
+                .right_hand(Held {
+                    adjust: ItemAdjust {
+                        offset: [0.5, 2.0, -1.25],
+                        rotation: [37.0, -20.0, 11.0],
+                        scale: 1.3,
+                    },
+                    ..Held::new(&item16)
+                })
+                .left_hand(Held {
+                    flat: true,
+                    adjust: ItemAdjust {
+                        rotation: [0.0, 90.0, 0.0],
+                        scale: 0.7,
+                        ..ItemAdjust::default()
+                    },
+                    ..Held::new(&item16)
+                })
+                .camera(cam(-35.0, 15.0, 0.0, 0.0))
+                .size(96),
+        ),
+        (
+            "held-slim",
+            RenderOptions::new(&test)
+                .identifier("geometry.humanoid.customSlim")
+                .right_hand(sword)
+                .left_hand(sword)
+                .pose(Motion::Wave.pose(0.3))
+                .size(80),
+        ),
+        (
+            "held-parts",
+            RenderOptions::new(&test)
+                .right_hand(sword)
+                .left_hand(sword)
+                .armor(diamond)
+                .parts(["rightArm"])
+                .size(64),
+        ),
+        (
+            "held-custom",
+            RenderOptions::new(&custom)
+                .geometry(&custom_geo)
+                .armor(winged)
+                .right_hand(sword)
+                .left_hand(sword)
+                .angle(Angle::Iso)
+                .size(96),
+        ),
+        (
+            "held-mesh",
+            RenderOptions::new(&test)
+                .geometry(&mesh_geo)
+                .animated(AnimatedType::Face, &face)
+                .armor(diamond)
+                .right_hand(sword)
+                .left_hand(flat)
+                .angle(Angle::Iso)
+                .size(96),
+        ),
+        (
+            "scale-parts",
+            RenderOptions::new(&test)
+                .armor(diamond)
+                .right_hand(sword)
+                .scale(Scale {
+                    parts: [
+                        ("HEAD", 1.6),
+                        ("rightarm", 1.3),
+                        ("leftLeg", 0.0),
+                        ("Body", 0.9),
+                    ]
+                    .into_iter()
+                    .map(|(k, v)| (k.to_string(), v))
+                    .collect(),
+                    ..Scale::default()
+                })
+                .pose(scaled.clone())
+                .angle(Angle::Iso)
+                .size(96),
+        ),
+        (
+            "scale-model-big",
+            RenderOptions::new(&test)
+                .armor(winged)
+                .right_hand(sword)
+                .scale(Scale {
+                    model: 1.7,
+                    ..Scale::default()
+                })
+                .angle(Angle::Iso)
+                .size(80),
+        ),
+        (
+            "scale-model-small",
+            RenderOptions::new(&semi)
+                .scale(Scale {
+                    model: 0.45,
+                    ..Scale::default()
+                })
+                .camera(cam(20.0, 5.0, 0.0, 1.1))
+                .size(80),
+        ),
+        (
+            "solo-armor",
+            RenderOptions::equipment()
+                .armor(winged)
+                .right_hand(sword)
+                .angle(Angle::Iso)
+                .size(96),
+        ),
+        (
+            "solo-helmet",
+            RenderOptions::equipment()
+                .armor(diamond)
+                .view(View::Head)
+                .size(64),
+        ),
+        (
+            "solo-hand",
+            RenderOptions::equipment()
+                .left_hand(flat)
+                .camera(cam(50.0, 10.0, 0.0, 0.0))
+                .size(64),
+        ),
+        (
+            "solo-cape-parts",
+            RenderOptions::equipment()
+                .cape(&test)
+                .armor(diamond)
+                .parts(["cape", "leftLeg"])
+                .size(64),
+        ),
+    ]);
+    let items = [
+        ("item-front", ItemOptions::new(&item16).size(64)),
+        (
+            "item-iso",
+            ItemOptions::new(&item24).angle(Angle::Iso).size(80),
+        ),
+        (
+            "item-camera",
+            ItemOptions::new(&item16)
+                .camera(cam(130.0, -25.0, 50.0, 1.4))
+                .size(72),
+        ),
+        (
+            "item-adjust",
+            ItemOptions::new(&item16)
+                .adjust(ItemAdjust {
+                    offset: [3.0, -1.0, 2.0],
+                    rotation: [20.0, 33.0, -45.0],
+                    scale: 2.5,
+                })
+                .size(64),
+        ),
+    ];
     let mut failures = Vec::new();
     for (name, opts) in &cases {
         let got = opts.render().unwrap();
@@ -375,9 +675,16 @@ fn renders_match_go() {
             failures.push(e.downcast_ref::<String>().cloned().unwrap_or_default());
         }
     }
+    for (name, opts) in &items {
+        let got = opts.render().unwrap();
+        let want = read(&format!("renders/{name}.png"));
+        if let Err(e) = std::panic::catch_unwind(|| assert_same_image(name, &got, &want)) {
+            failures.push(e.downcast_ref::<String>().cloned().unwrap_or_default());
+        }
+    }
     assert_eq!(
         fs::read_dir(format!("{DIR}/renders")).unwrap().count(),
-        cases.len(),
+        cases.len() + items.len(),
         "every Go render is checked"
     );
     assert!(failures.is_empty(), "{failures:#?}");
@@ -459,6 +766,80 @@ fn animation_frames_match_go() {
         )
         .fps(5),
     );
+    let (a40, a150, a220, item16) = (
+        armor_texture(40),
+        armor_texture(150),
+        armor_texture(220),
+        item_texture(16),
+    );
+    let winged = Armor {
+        elytra: Some(&a220),
+        ..Armor::set(&a40, &a150)
+    };
+    let equipped = RenderOptions::new(&test)
+        .armor(winged)
+        .right_hand(Held::new(&item16))
+        .left_hand(Held {
+            flat: true,
+            adjust: ItemAdjust {
+                rotation: [10.0, 0.0, 0.0],
+                ..ItemAdjust::default()
+            },
+            ..Held::new(&item16)
+        })
+        .angle(Angle::Iso)
+        .size(64);
+    check(
+        "armored-walk",
+        AnimationOptions::new(equipped.clone(), &Motion::Walk).fps(4),
+    );
+    check(
+        "armored-sneak",
+        AnimationOptions::new(equipped, &Motion::Sneak).fps(4),
+    );
+    check(
+        "solo-walk",
+        AnimationOptions::new(
+            RenderOptions::equipment()
+                .armor(winged)
+                .right_hand(Held::new(&item16))
+                .angle(Angle::Iso)
+                .size(64),
+            &Motion::Walk,
+        )
+        .fps(4),
+    );
+    let spin = render_item_frames(&ItemAnimationOptions {
+        duration: 1.5,
+        fps: 4,
+        ..ItemAnimationOptions::new(
+            ItemOptions::new(&item16)
+                .camera(Camera {
+                    yaw: 0.0,
+                    pitch: 15.0,
+                    fov: 0.0,
+                    margin: 0.0,
+                })
+                .adjust(ItemAdjust {
+                    rotation: [0.0, 0.0, 20.0],
+                    ..ItemAdjust::default()
+                })
+                .size(48),
+        )
+    })
+    .unwrap();
+    for (i, f) in spin.iter().enumerate() {
+        assert_same_image(
+            &format!("item-spin-{i:02}"),
+            f,
+            &read(&format!("frames/item-spin-{i:02}.png")),
+        );
+    }
+    assert!(
+        fs::metadata(format!("{DIR}/frames/item-spin-{:02}.png", spin.len())).is_err(),
+        "item-spin: frame count"
+    );
+    checked += spin.len();
     assert_eq!(
         checked,
         fs::read_dir(format!("{DIR}/frames")).unwrap().count()

@@ -53,6 +53,38 @@ func testTexture() *image.NRGBA {
 	return img
 }
 
+// armorTexture is an armor layer, 64x32 as the game's are, with a
+// transparent patch where real chestplates leave the lower arm bare.
+func armorTexture(tint uint8) *image.NRGBA {
+	img := image.NewNRGBA(image.Rect(0, 0, 64, 32))
+	for y := 0; y < 32; y++ {
+		for x := 0; x < 64; x++ {
+			a := uint8(255)
+			if x >= 40 && x < 56 && y >= 26 {
+				a = 0
+			}
+			img.Set(x, y, color.NRGBA{R: tint, G: uint8(120 + x*2), B: uint8(140 + y*3), A: a})
+		}
+	}
+	return img
+}
+
+// itemTexture is an item sprite of side n: a diagonal blade whose alpha
+// sweeps every value, to pin the held item's alpha cut-off.
+func itemTexture(n int) *image.NRGBA {
+	img := image.NewNRGBA(image.Rect(0, 0, n, n))
+	for y := 0; y < n; y++ {
+		for x := 0; x < n; x++ {
+			d := x + y - (n - 1)
+			if d < -1 || d > 1 {
+				continue
+			}
+			img.Set(x, y, color.NRGBA{R: uint8(x * 16), G: uint8(200 - y*5), B: uint8(60 + d*50), A: uint8((x*37 + y*11) % 256)})
+		}
+	}
+	return img
+}
+
 // semiTexture has every alpha from 0 to 255, to exercise the alpha test,
 // blending, and the 2D fallback's premultiplying.
 func semiTexture() *image.NRGBA {
@@ -161,6 +193,12 @@ func renders() {
 		"leftLeg":  {Position: [3]float64{0, 2, -3}, Rotation: [3]float64{-40, 0, 0}},
 	}
 
+	diamond := bedrockskin.ArmorSet(armorTexture(40), armorTexture(150))
+	winged := diamond
+	winged.Elytra = armorTexture(220)
+	sword := bedrockskin.Held{Item: itemTexture(16)}
+	flat := bedrockskin.Held{Item: itemTexture(16), Flat: true}
+
 	cases := map[string]bedrockskin.Options{
 		"bench-body-iso":     {Texture: bench, Geometry: benchGeo, Angle: bedrockskin.AngleIso, Size: 128},
 		"bench-avatar":       {Texture: bench, Geometry: benchGeo, View: bedrockskin.ViewAvatar, Size: 100},
@@ -194,9 +232,46 @@ func renders() {
 		"mesh-odd-head":      {Texture: semi, Geometry: oddGeo, View: bedrockskin.ViewHead, Size: 64},
 		"mesh-odd-chest":     {Texture: test, Geometry: oddGeo, View: bedrockskin.ViewChest, Size: 64},
 		"mesh-companion":     {Texture: test, Geometry: companionGeo, Animated: body128, Angle: bedrockskin.AngleIso, Size: 96},
+		"armor-iso":          {Texture: test, Armor: diamond, Angle: bedrockskin.AngleIso, Size: 96},
+		"armor-back":         {Texture: semi, Armor: diamond, Cape: test, Camera: &bedrockskin.Camera{Yaw: 160, Pitch: 25}, Size: 96},
+		"armor-mixed-slim":   {Texture: test, Identifier: "geometry.humanoid.customSlim", Armor: bedrockskin.Armor{Helmet: armorTexture(200), Boots: armorTexture(90)}, Angle: bedrockskin.AngleIso, Size: 80},
+		"armor-avatar":       {Texture: test, Armor: diamond, RightHand: sword, View: bedrockskin.ViewAvatar, Size: 64},
+		"armor-chest":        {Texture: test, Armor: diamond, RightHand: sword, LeftHand: flat, View: bedrockskin.ViewChest, Size: 72},
+		"elytra-back":        {Texture: test, Armor: winged, Camera: &bedrockskin.Camera{Yaw: 170, Pitch: 15}, Size: 96},
+		"elytra-side":        {Texture: semi, Armor: winged, RightHand: sword, Camera: &bedrockskin.Camera{Yaw: -70, Pitch: -20}, Size: 96},
+		"held-side":          {Texture: test, RightHand: sword, Camera: &bedrockskin.Camera{Yaw: -70, Pitch: 10}, Size: 96},
+		"held-24":            {Texture: semi, RightHand: bedrockskin.Held{Item: itemTexture(24)}, Angle: bedrockskin.AngleIso, Size: 96},
+		"held-left":          {Texture: test, LeftHand: sword, Camera: &bedrockskin.Camera{Yaw: 60, Pitch: 10}, Size: 96},
+		"held-both-flat":     {Texture: test, RightHand: flat, LeftHand: bedrockskin.Held{Item: itemTexture(24), Flat: true}, Angle: bedrockskin.AngleIso, Size: 96},
+		"held-adjust":        {Texture: test, RightHand: bedrockskin.Held{Item: itemTexture(16), Adjust: bedrockskin.ItemAdjust{Offset: [3]float64{0.5, 2, -1.25}, Rotation: [3]float64{37, -20, 11}, Scale: 1.3}}, LeftHand: bedrockskin.Held{Item: itemTexture(16), Flat: true, Adjust: bedrockskin.ItemAdjust{Rotation: [3]float64{0, 90, 0}, Scale: 0.7}}, Camera: &bedrockskin.Camera{Yaw: -35, Pitch: 15}, Size: 96},
+		"held-slim":          {Texture: test, Identifier: "geometry.humanoid.customSlim", RightHand: sword, LeftHand: sword, Pose: bedrockskin.MotionWave.Pose(0.3), Size: 80},
+		"held-parts":         {Texture: test, RightHand: sword, LeftHand: sword, Armor: diamond, Parts: []string{"rightArm"}, Size: 64},
+		"held-custom":        {Texture: custom, Geometry: customGeo, Armor: winged, RightHand: sword, LeftHand: sword, Angle: bedrockskin.AngleIso, Size: 96},
+		"held-mesh":          {Texture: test, Geometry: meshGeo, Animated: face, Armor: diamond, RightHand: sword, LeftHand: flat, Angle: bedrockskin.AngleIso, Size: 96},
+		"scale-parts":        {Texture: test, Armor: diamond, RightHand: sword, Scale: bedrockskin.Scale{Parts: map[string]float64{"HEAD": 1.6, "rightarm": 1.3, "leftLeg": 0, "Body": 0.9}}, Pose: scaled, Angle: bedrockskin.AngleIso, Size: 96},
+		"scale-model-big":    {Texture: test, Armor: winged, RightHand: sword, Scale: bedrockskin.Scale{Model: 1.7}, Angle: bedrockskin.AngleIso, Size: 80},
+		"scale-model-small":  {Texture: semi, Scale: bedrockskin.Scale{Model: 0.45}, Camera: &bedrockskin.Camera{Yaw: 20, Pitch: 5, Margin: 1.1}, Size: 80},
+		"solo-armor":         {HideSkin: true, Armor: winged, RightHand: sword, Angle: bedrockskin.AngleIso, Size: 96},
+		"solo-helmet":        {HideSkin: true, Armor: diamond, View: bedrockskin.ViewHead, Size: 64},
+		"solo-hand":          {HideSkin: true, LeftHand: flat, Camera: &bedrockskin.Camera{Yaw: 50, Pitch: 10}, Size: 64},
+		"solo-cape-parts":    {HideSkin: true, Cape: test, Armor: diamond, Parts: []string{"cape", "leftLeg"}, Size: 64},
 	}
 	for name, opts := range cases {
 		b, err := opts.RenderPNG()
+		must(err)
+		must(os.WriteFile(filepath.Join(*out, "renders", name+".png"), b, 0o644))
+	}
+
+	items := map[string]bedrockskin.ItemOptions{
+		"item-front":  {Item: itemTexture(16), Size: 64},
+		"item-iso":    {Item: itemTexture(24), Angle: bedrockskin.AngleIso, Size: 80},
+		"item-camera": {Item: itemTexture(16), Camera: &bedrockskin.Camera{Yaw: 130, Pitch: -25, FOV: 50, Margin: 1.4}, Size: 72},
+		"item-adjust": {Item: itemTexture(16), Adjust: bedrockskin.ItemAdjust{Offset: [3]float64{3, -1, 2}, Rotation: [3]float64{20, 33, -45}, Scale: 2.5}, Size: 64},
+	}
+	for name, opts := range items {
+		img, err := bedrockskin.RenderItem(opts)
+		must(err)
+		b, err := bedrockskin.EncodePNG(img)
 		must(err)
 		must(os.WriteFile(filepath.Join(*out, "renders", name+".png"), b, 0o644))
 	}
@@ -225,6 +300,20 @@ func frames() {
 		Options:   bedrockskin.Options{Texture: test, Geometry: parse("persona-mesh-geometry.json"), Animated: []bedrockskin.AnimatedTexture{{Type: bedrockskin.AnimatedFace, Texture: faceTexture()}}, Angle: bedrockskin.AngleIso, Size: 64},
 		Animation: bedrockskin.MotionWalk, FPS: 4,
 	})
+	winged := bedrockskin.ArmorSet(armorTexture(40), armorTexture(150))
+	winged.Elytra = armorTexture(220)
+	equipped := bedrockskin.Options{Texture: test, Armor: winged, RightHand: bedrockskin.Held{Item: itemTexture(16)}, LeftHand: bedrockskin.Held{Item: itemTexture(16), Flat: true, Adjust: bedrockskin.ItemAdjust{Rotation: [3]float64{10, 0, 0}}}, Angle: bedrockskin.AngleIso, Size: 64}
+	spin, err := bedrockskin.RenderItemFrames(bedrockskin.ItemAnimationOptions{ItemOptions: bedrockskin.ItemOptions{Item: itemTexture(16), Camera: &bedrockskin.Camera{Pitch: 15}, Adjust: bedrockskin.ItemAdjust{Rotation: [3]float64{0, 0, 20}}, Size: 48}, Duration: 1.5, FPS: 4})
+	must(err)
+	for i, f := range spin {
+		b, err := bedrockskin.EncodePNG(f)
+		must(err)
+		must(os.WriteFile(filepath.Join(*out, "frames", fmt.Sprintf("item-spin-%02d.png", i)), b, 0o644))
+	}
+	solo := bedrockskin.Options{HideSkin: true, Armor: winged, RightHand: bedrockskin.Held{Item: itemTexture(16)}, Angle: bedrockskin.AngleIso, Size: 64}
+	writeFrames("solo-walk", bedrockskin.AnimationOptions{Options: solo, Animation: bedrockskin.MotionWalk, FPS: 4})
+	writeFrames("armored-walk", bedrockskin.AnimationOptions{Options: equipped, Animation: bedrockskin.MotionWalk, FPS: 4})
+	writeFrames("armored-sneak", bedrockskin.AnimationOptions{Options: equipped, Animation: bedrockskin.MotionSneak, FPS: 4})
 	writeFrames("molang", bedrockskin.AnimationOptions{
 		Options:   bedrockskin.Options{Texture: customTexture(), Geometry: customGeo, Angle: bedrockskin.AngleIso, Size: 72},
 		Animation: mol["animation.parity.molang"], FPS: 5,

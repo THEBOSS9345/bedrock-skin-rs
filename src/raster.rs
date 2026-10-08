@@ -67,9 +67,10 @@ impl Vec4 {
     fn xyz(self) -> Vec3 {
         Vec3::new(self.x, self.y, self.z)
     }
-    fn outside(self) -> bool {
-        let Vec4 { x, y, z, w } = self;
-        x < -w || x > w || y < -w || y > w || z < -w || z > w
+    /// Beyond the near or far plane, or behind the camera.
+    fn depth_outside(self) -> bool {
+        let Vec4 { z, w, .. } = self;
+        w.is_nan() || w <= 0.0 || z < -w || z > w
     }
     fn add(self, b: Vec4) -> Vec4 {
         Vec4 {
@@ -560,7 +561,11 @@ impl Context {
         for vert in &mut v {
             vert.output = matrix.mul_position_w(vert.position);
         }
-        if v.iter().any(|v| v.output.outside()) {
+        // Only a triangle crossing the near or far plane is clipped. One that
+        // merely runs off the image is drawn whole and rasterize keeps to the
+        // image: clipping its two halves apart left a gap down a face's
+        // diagonal. See docs/design-decisions.md#why-edges-are-not-stepped.
+        if v.iter().any(|v| v.output.depth_outside()) {
             for t in clip_triangle(&v) {
                 self.draw_clipped(t, tex);
             }
@@ -607,71 +612,33 @@ impl Context {
         let y0 = go_int(lo.y.floor());
         let y1 = go_int(hi.y.ceil());
 
-        let p = Vec3::new(x0 as f64 + 0.5, y0 as f64 + 0.5, 0.0);
-        let mut w00 = edge(s1, s2, p);
-        let mut w01 = edge(s2, s0, p);
-        let mut w02 = edge(s0, s1, p);
-        let a01 = s1.y - s0.y;
-        let b01 = s0.x - s1.x;
-        let a12 = s2.y - s1.y;
-        let b12 = s1.x - s2.x;
-        let a20 = s0.y - s2.y;
-        let b20 = s2.x - s0.x;
-
         let ra = 1.0 / edge(s0, s1, s2);
         let r0 = 1.0 / v0.output.w;
         let r1 = 1.0 / v1.output.w;
         let r2 = 1.0 / v2.output.w;
-        let ra12 = 1.0 / a12;
-        let ra20 = 1.0 / a20;
-        let ra01 = 1.0 / a01;
 
+        // Only pixels on the image: off it there is nothing to draw, and a
+        // pixel's index would wrap into the next row.
         let width = self.width as i64;
+        let (x0, x1) = (x0.max(0), x1.min(width - 1));
+        let (y0, y1) = (y0.max(0), y1.min(self.height as i64 - 1));
         let mut y = y0;
         while y <= y1 {
-            let mut d = 0.0f64;
-            let d0 = -w00 * ra12;
-            let d1 = -w01 * ra20;
-            let d2 = -w02 * ra01;
-            if w00 < 0.0 && d0 > d {
-                d = d0;
-            }
-            if w01 < 0.0 && d1 > d {
-                d = d1;
-            }
-            if w02 < 0.0 && d2 > d {
-                d = d2;
-            }
-            d = go_int(d) as f64;
-            if d < 0.0 {
-                d = 0.0;
-            }
-            let mut w0 = w00 + a12 * d;
-            let mut w1 = w01 + a20 * d;
-            let mut w2 = w02 + a01 * d;
-            let mut was_inside = false;
-            let mut x = x0.wrapping_add(go_int(d));
+            let mut x = x0;
             while x <= x1 {
-                let b0 = w0 * ra;
-                let b1 = w1 * ra;
-                let b2 = w2 * ra;
-                w0 += a12;
-                w1 += a20;
-                w2 += a01;
+                // Each pixel's edge functions are worked out afresh. fauxgl
+                // steps them along the row, and the rounding that accumulates
+                // let thin, edge-on triangles spill slivers past their edges.
+                // See docs/design-decisions.md#why-edges-are-not-stepped.
+                let p = Vec3::new(x as f64 + 0.5, y as f64 + 0.5, 0.0);
+                let b0 = edge(s1, s2, p) * ra;
+                let b1 = edge(s2, s0, p) * ra;
+                let b2 = edge(s0, s1, p) * ra;
                 if b0 < 0.0 || b1 < 0.0 || b2 < 0.0 {
-                    if was_inside {
-                        break;
-                    }
                     x += 1;
                     continue;
                 }
-                was_inside = true;
-                let i = y.wrapping_mul(width).wrapping_add(x);
-                if i < 0 || i as usize >= self.depth.len() {
-                    x += 1;
-                    continue;
-                }
-                let i = i as usize;
+                let i = (y * width + x) as usize;
                 let z = b0 * s0.z + b1 * s1.z + b2 * s2.z;
                 let bz = z + 0.0;
                 if bz > self.depth[i] {
@@ -699,9 +666,6 @@ impl Context {
                 }
                 x += 1;
             }
-            w00 += b12;
-            w01 += b20;
-            w02 += b01;
             y += 1;
         }
     }
