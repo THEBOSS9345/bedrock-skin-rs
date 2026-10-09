@@ -428,11 +428,12 @@ impl Frames<'_> {
             }
             if cam.margin > 0.0 {
                 margin = cam.margin;
-            }
-            if self.scale > 0.0 {
-                // scene() divides a camera's margin by Scale.Model, so a
-                // refit has to as well or a scaled model frames differently.
-                margin /= self.scale;
+                if self.scale > 0.0 {
+                    // scene() divides a camera's margin by Scale.Model, so a
+                    // refit has to as well or a scaled model frames
+                    // differently. The prepared margin is already divided.
+                    margin /= self.scale;
+                }
             }
             yaw = cam.yaw;
             pitch = cam.pitch;

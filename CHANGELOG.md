@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Fix: `Frames::draw` with a camera that leaves the margin at 0 divided the
+  prepared margin by `scale.model` a second time, so a scaled model drew at the
+  wrong size. It now keeps the prepared margin as `RenderFrames` does.
+
 ## 0.2.5
 
 - `prepare_frames` and `Frames`: an animation prepared once, its per-frame

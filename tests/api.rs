@@ -239,6 +239,29 @@ fn prepared_frames_draw_one_at_a_time() {
             "scaled frame {i} differs"
         );
     }
+
+    // A camera without a margin keeps the prepared one, which scene() has
+    // already divided by Scale.model: it must not be divided again.
+    let no_margin = Camera { margin: 0.0, ..cam };
+    let scaled = AnimationOptions::new(
+        RenderOptions::new(&t)
+            .size(64)
+            .scale(Scale {
+                model: 2.0,
+                ..Default::default()
+            })
+            .camera(no_margin),
+        &anims["animation.test.root"],
+    )
+    .fps(4);
+    let scaled_frames = prepare_frames(&scaled).unwrap();
+    for (i, want) in scaled.render_frames().unwrap().iter().enumerate() {
+        assert_eq!(
+            &scaled_frames.draw(i, 64, Some(no_margin)),
+            want,
+            "scaled frame {i} with no camera margin differs"
+        );
+    }
 }
 
 /// The first row with an opaque pixel, or `usize::MAX` when nothing is drawn.
