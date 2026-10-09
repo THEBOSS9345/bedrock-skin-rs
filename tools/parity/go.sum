@@ -1,5 +1,7 @@
 github.com/THEBOSS9345/bedrock-skin-go v0.2.4 h1:/kPKiTH5A+S30dBgaRoK3qbDrhHiSpXKd1nWvVwIRxU=
 github.com/THEBOSS9345/bedrock-skin-go v0.2.4/go.mod h1:a+r5d52ukgPDuj4q5LxuD+OUeN3eeRLIq1lyGsrpddo=
+github.com/THEBOSS9345/bedrock-skin-go v0.2.5 h1:v8FBMH5v87iIbmcNGS2IklS1KxCq2jjy31VBxq+xH7U=
+github.com/THEBOSS9345/bedrock-skin-go v0.2.5/go.mod h1:a+r5d52ukgPDuj4q5LxuD+OUeN3eeRLIq1lyGsrpddo=
 github.com/fogleman/fauxgl v0.0.0-20250110135958-abf826acbbbd h1:8bZGm26jDoW+JQ1ZPugRU0ADy5k45DRb42sOxEeufNo=
 github.com/fogleman/fauxgl v0.0.0-20250110135958-abf826acbbbd/go.mod h1:7f7F8EvO8MWvDx9sIoloOfZBCKzlWuZV/h3TjpXOO3k=
 github.com/fogleman/simplify v0.0.0-20170216171241-d32f302d5046 h1:n3RPbpwXSFT0G8FYslzMUBDO09Ix8/dlqzvUkcJm4Jk=
