@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.8
+
+- Fix: a cape came off the skin in any animation that moves the `root`
+  bone - swimming, sitting, sneaking, spinning and many of the bundled
+  examples. The cape's own chain of bones stops at the waist, so it never
+  saw root move. It is now hung on the skin's skeleton and moves with it.
+  Matches bedrock-skin-go v0.2.7.
+
 ## 0.2.7
 
 - Fix: a cape worn with a chestplate was drawn inside it and hidden, since the

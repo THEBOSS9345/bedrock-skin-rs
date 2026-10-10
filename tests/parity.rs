@@ -179,6 +179,8 @@ fn renders_match_go() {
         margin,
     };
 
+    let swim_chest = armor_texture(40);
+    let swim = example_animations()["animation.player.swim"].pose(0.5);
     let cases: Vec<(&str, RenderOptions)> = vec![
         (
             "bench-body-iso",
@@ -298,6 +300,26 @@ fn renders_match_go() {
             "sneak-still",
             RenderOptions::new(&test)
                 .pose(Motion::Sneak.pose(0.4))
+                .size(96),
+        ),
+        (
+            "cape-sneak",
+            RenderOptions::new(&test)
+                .cape(&test)
+                .pose(Motion::Sneak.pose(0.4))
+                .camera(cam(150.0, 15.0, 0.0, 0.0))
+                .size(96),
+        ),
+        (
+            "cape-swim",
+            RenderOptions::new(&test)
+                .cape(&test)
+                .armor(Armor {
+                    chestplate: Some(&swim_chest),
+                    ..Default::default()
+                })
+                .pose(swim.clone())
+                .camera(cam(200.0, 30.0, 0.0, 0.0))
                 .size(96),
         ),
         (

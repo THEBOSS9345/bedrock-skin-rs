@@ -219,6 +219,8 @@ func renders() {
 		"legacy-body":        {Texture: test, Geometry: legacyGeo, Size: 64},
 		"legacy-alpha":       {Texture: legacyTexture(), Geometry: legacyGeo, Identifier: "geometry.alpha", Size: 64},
 		"sneak-still":        {Texture: test, Pose: bedrockskin.MotionSneak.Pose(0.4), Size: 96},
+		"cape-sneak":         {Texture: test, Cape: test, Pose: bedrockskin.MotionSneak.Pose(0.4), Camera: &bedrockskin.Camera{Yaw: 150, Pitch: 15}, Size: 96},
+		"cape-swim":          {Texture: test, Cape: test, Armor: bedrockskin.Armor{Chestplate: armorTexture(40)}, Pose: bedrockskin.ExampleAnimations()["animation.player.swim"].Pose(0.5), Camera: &bedrockskin.Camera{Yaw: 200, Pitch: 30}, Size: 96},
 		"scaled-pose":        {Texture: test, Pose: scaled, Angle: bedrockskin.AngleIso, Size: 96},
 		"tiny":               {Texture: test, View: bedrockskin.ViewAvatar, Size: 3},
 		"mesh-body":          {Texture: test, Geometry: meshGeo, Size: 96},

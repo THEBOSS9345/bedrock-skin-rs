@@ -556,10 +556,11 @@ impl<'a> RenderOptions<'a> {
             && let Some(cape_geo) = cape_geometry_for(geos, geo)
         {
             let include = |name: &str| name == "cape";
+            let cape_geo = cape_on_skeleton(cape_geo, geo);
             let triangles = if self.armor.textures()[1].is_some() {
-                build_triangles(cape_geo, Some(&include), &chestplate_cape_pose(pose))
+                build_triangles(&cape_geo, Some(&include), &chestplate_cape_pose(pose))
             } else {
-                build_triangles(cape_geo, Some(&include), pose)
+                build_triangles(&cape_geo, Some(&include), pose)
             };
             if !triangles.is_empty() {
                 layers.push(Layer {
@@ -692,6 +693,53 @@ fn cape_geometry_for<'a>(geos: &'a [Geometry], body: &Geometry) -> Option<&'a Ge
         .filter(|g| g.identifier != body.identifier)
         .find(|g| g.bone_by_name("cape").is_some_and(|b| !b.cubes.is_empty()))
         .or_else(|| find_cape(default_geometry()))
+}
+
+/// `cape_geo` with the bones `skel` has above it added, without their cubes.
+/// The cape's chain stops at the waist, while the skin's goes on up to a root
+/// that animations move - swimming, sitting, sneaking - so a cape left on its
+/// own chain stayed where the skin had been. See
+/// docs/equipment.md#capes-follow-the-skin.
+fn cape_on_skeleton(cape_geo: &Geometry, skel: &Geometry) -> Geometry {
+    let mut have: std::collections::HashSet<&str> =
+        cape_geo.bones.iter().map(|b| b.name.as_str()).collect();
+    let mut skel_bones: HashMap<&str, &Bone> = HashMap::new();
+    for b in &skel.bones {
+        skel_bones.entry(b.name.as_str()).or_insert(b);
+    }
+    let mut bones = cape_geo.bones.clone();
+    for i in 0..cape_geo.bones.len() {
+        let b = &cape_geo.bones[i];
+        if !b.parent.is_empty() && have.contains(b.parent.as_str()) {
+            continue;
+        }
+        let Some(sb) = skel_bones.get(b.name.as_str()) else {
+            continue;
+        };
+        if sb.parent.is_empty() || have.contains(sb.parent.as_str()) {
+            continue;
+        }
+        bones[i].parent = sb.parent.clone();
+        let mut name = sb.parent.as_str();
+        while !name.is_empty() && !have.contains(name) {
+            let Some(up) = skel_bones.get(name) else {
+                break;
+            };
+            have.insert(name);
+            bones.push(Bone {
+                name: up.name.clone(),
+                parent: up.parent.clone(),
+                pivot: up.pivot.clone(),
+                rotation: up.rotation.clone(),
+                ..Default::default()
+            });
+            name = up.parent.as_str();
+        }
+    }
+    Geometry {
+        bones,
+        ..cape_geo.clone()
+    }
 }
 
 /// The field of view and margin that suit a view: avatar is a tight crop,

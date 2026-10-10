@@ -284,10 +284,7 @@ fn cape_hangs_outside_the_chestplate() {
     };
     let tex = skin();
     let chest = armor();
-    let bare = RenderOptions::new(&tex)
-        .cape(&cape)
-        .camera(behind)
-        .size(96);
+    let bare = RenderOptions::new(&tex).cape(&cape).camera(behind).size(96);
     let armored = bare.clone().armor(Armor {
         chestplate: Some(&chest),
         ..Default::default()
