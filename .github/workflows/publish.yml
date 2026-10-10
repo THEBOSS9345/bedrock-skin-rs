@@ -1,0 +1,58 @@
+name: Publish
+
+# Publishes bedrock-skin to crates.io with trusted publishing (OIDC): no
+# crates.io token is stored in the repository.
+#
+# Release by pushing a v<version> tag (the version must equal the one in
+# Cargo.toml), or run this workflow by hand from the Actions tab.
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write # exchanges this job's OIDC token for a short-lived crates.io token
+
+concurrency:
+  group: publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      # The same checks CI runs on main, so a bad tag cannot publish.
+      - name: Format
+        run: cargo fmt --check
+      - name: Clippy
+        run: cargo clippy --all-targets -- -D warnings
+      - name: Test
+        run: cargo test
+
+      - name: Check the tag matches the version
+        if: github.ref_type == 'tag'
+        shell: bash
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          version="$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -n1)"
+          if [ "$tag" != "$version" ]; then
+            echo "::error::tag v$tag does not match Cargo.toml version $version"
+            exit 1
+          fi
+
+      # No CARGO_REGISTRY_TOKEN secret: this action exchanges the job's OIDC
+      # token for a crates.io publishing token that expires in 30 minutes.
+      - uses: rust-lang/crates-io-auth-action@v1
+        id: auth
+
+      - name: Publish
+        run: cargo publish
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
