@@ -122,6 +122,24 @@ pub(crate) fn elytra_pose(pose: &Pose) -> Pose {
     ])
 }
 
+/// How far back a cape hangs over a chestplate, in model units. The
+/// chestplate's body is the body grown by 1.01 on every side, so a cape left
+/// where it rests on the back is drawn inside it. Java Edition moves the cape
+/// back by the same amount when a chestplate is worn. See
+/// docs/equipment.md#capes-over-a-chestplate.
+const CHESTPLATE_CAPE_OFFSET: f64 = 1.1;
+
+/// `pose` with the cape moved back clear of a chestplate.
+pub(crate) fn chestplate_cape_pose(pose: &Pose) -> Pose {
+    pose.with(&[(
+        "cape",
+        BonePose {
+            position: [0.0, 0.0, CHESTPLATE_CAPE_OFFSET],
+            ..Default::default()
+        },
+    )])
+}
+
 /// Resizes the figure or any of its bones. The default changes nothing. A
 /// held item has its own scale, in [`ItemAdjust`]. See
 /// docs/equipment.md#scale.

@@ -11,8 +11,8 @@ use image::RgbaImage;
 
 use crate::animation::Pose;
 use crate::equipment::{
-    ARMOR_PIECES, Armor, ELYTRA_PIECE, Held, Scale, armor_geometry, build_held_item, elytra_pose,
-    hands,
+    ARMOR_PIECES, Armor, ELYTRA_PIECE, Held, Scale, armor_geometry, build_held_item,
+    chestplate_cape_pose, elytra_pose, hands,
 };
 use crate::geometry::{Bone, Geometry, default_geometry, find_cape, select_geometry};
 use crate::mesh::{bone_world_matrices, build_triangles};
@@ -556,7 +556,11 @@ impl<'a> RenderOptions<'a> {
             && let Some(cape_geo) = cape_geometry_for(geos, geo)
         {
             let include = |name: &str| name == "cape";
-            let triangles = build_triangles(cape_geo, Some(&include), pose);
+            let triangles = if self.armor.textures()[1].is_some() {
+                build_triangles(cape_geo, Some(&include), &chestplate_cape_pose(pose))
+            } else {
+                build_triangles(cape_geo, Some(&include), pose)
+            };
             if !triangles.is_empty() {
                 layers.push(Layer {
                     triangles,

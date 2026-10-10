@@ -264,3 +264,41 @@ fn items_on_their_own() {
     .unwrap();
     assert_eq!(gif, gif_bytes);
 }
+
+/// A chestplate reaches further back than a cape rests, so a cape left in
+/// place was drawn inside it and hidden. Seen from behind, it must show as
+/// much over a chestplate as without one.
+#[test]
+fn cape_hangs_outside_the_chestplate() {
+    let cape = RgbaImage::from_pixel(64, 32, Rgba([230, 0, 0, 255]));
+    let behind = Camera {
+        yaw: 180.0,
+        ..Default::default()
+    };
+    let red = |img: &RgbaImage| {
+        img.pixels()
+            .filter(|p| {
+                p[3] > 0 && p[0] as i32 > p[1] as i32 + 100 && p[0] as i32 > p[2] as i32 + 100
+            })
+            .count()
+    };
+    let tex = skin();
+    let chest = armor();
+    let bare = RenderOptions::new(&tex)
+        .cape(&cape)
+        .camera(behind)
+        .size(96);
+    let armored = bare.clone().armor(Armor {
+        chestplate: Some(&chest),
+        ..Default::default()
+    });
+    let (bare, armored) = (
+        red(&bare.render().unwrap()),
+        red(&armored.render().unwrap()),
+    );
+    assert!(bare > 0, "the cape did not show from behind");
+    assert!(
+        armored * 10 >= bare * 9,
+        "cape over a chestplate shows {armored} pixels, {bare} without one: the chestplate hides it"
+    );
+}

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.7
+
+- Fix: a cape worn with a chestplate was drawn inside it and hidden, since the
+  chestplate reaches further back than the cape rests. With a chestplate worn,
+  the cape now hangs 1.1 units further back, outside the armor, as Java
+  Edition moves it. Matches bedrock-skin-go v0.2.6.
+
 ## 0.2.6
 
 - Fix: `Frames::draw` with a camera that leaves the margin at 0 divided the
