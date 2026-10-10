@@ -4,11 +4,17 @@ name: Publish
 # crates.io token is stored in the repository.
 #
 # Release by pushing a v<version> tag (the version must equal the one in
-# Cargo.toml), or run this workflow by hand from the Actions tab.
+# Cargo.toml). To check the trusted-publisher setup without publishing, run
+# this workflow by hand from the Actions tab (it defaults to a dry run).
 on:
   push:
     tags: ['v*']
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Validate the trusted-publisher setup without publishing'
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -52,7 +58,16 @@ jobs:
       - uses: rust-lang/crates-io-auth-action@v1
         id: auth
 
+      # Manual dispatch defaults to this: proves the OIDC exchange is
+      # authorized without uploading anything.
+      - name: Package (dry run)
+        if: github.event_name == 'workflow_dispatch' && inputs.dry_run
+        run: cargo publish --dry-run
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
+
       - name: Publish
+        if: github.event_name != 'workflow_dispatch' || !inputs.dry_run
         run: cargo publish
         env:
           CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
