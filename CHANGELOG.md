@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.9
+
+- No library changes. Releases now publish from GitHub Actions with
+  [trusted publishing](https://crates.io/docs/trusted-publishing) (OIDC):
+  no crates.io API token is stored in the repository.
+
 ## 0.2.8
 
 - Fix: a cape came off the skin in any animation that moves the `root`
