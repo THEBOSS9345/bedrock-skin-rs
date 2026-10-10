@@ -24,7 +24,7 @@ import (
 )
 
 var (
-	out     = flag.String("out", "../../testdata/parity", "where to write the fixtures")
+	out = flag.String("out", "../../testdata/parity", "where to write the fixtures")
 )
 
 func main() {
